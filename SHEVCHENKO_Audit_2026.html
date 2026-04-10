@@ -1,0 +1,3693 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHEVCHENKO — Comprehensive Store Audit | April 2026</title>
+<style>
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  :root {
+    --color-critical: #DC2626; --color-high: #EA580C;
+    --color-medium: #2563EB; --color-low: #6B7280;
+    --color-bg: #FFFFFF; --color-text: #1F2937;
+    --color-text-light: #6B7280; --color-border: #E5E7EB;
+    --color-row-alt: #F9FAFB; --color-code-bg: #F3F4F6;
+    --color-accent: #111827; --max-width: 920px; --sidebar-width: 260px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px; line-height: 1.75; color: var(--color-text); background: var(--color-bg);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh;
+    overflow-y: auto; background: #FAFAFA; border-right: 1px solid var(--color-border);
+    padding: 24px 16px; z-index: 100;
+  }
+  .sidebar h2 { font-family: Georgia, serif; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--color-text-light); margin-bottom: 16px; }
+  .sidebar ol { list-style: none; padding: 0; }
+  .sidebar ol li { margin-bottom: 6px; }
+  .sidebar ol li a { display: block; padding: 6px 10px; font-size: 12.5px; color: var(--color-text); text-decoration: none; border-radius: 4px; line-height: 1.4; transition: background 0.15s; }
+  .sidebar ol li a:hover { background: #E5E7EB; }
+  .sidebar ol li a .num { display: inline-block; width: 24px; font-weight: 600; color: var(--color-text-light); font-size: 11px; }
+
+  /* MAIN */
+  .main { margin-left: var(--sidebar-width); max-width: var(--max-width); padding: 0 48px 80px 48px; }
+
+  /* HEADER */
+  .branded-header { padding: 48px 0 32px 0; border-bottom: 2px solid var(--color-accent); margin-bottom: 48px; }
+  .branded-header h1 { font-family: Georgia, serif; font-size: 28px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: var(--color-accent); margin-bottom: 4px; }
+  .branded-header .subtitle { font-size: 15px; color: var(--color-text-light); }
+  .branded-header .prepared { font-size: 13px; color: var(--color-text-light); margin-top: 8px; font-style: italic; }
+
+  /* TYPOGRAPHY */
+  h1, h2, h3, h4 { font-family: Georgia, serif; color: var(--color-accent); }
+  .section-block { margin-bottom: 64px; padding-top: 24px; }
+  .section-block > h2 { font-size: 24px; font-weight: 700; margin-bottom: 28px; padding-bottom: 14px; border-bottom: 1px solid var(--color-border); }
+  .section-block > h2 .sec-num { color: var(--color-text-light); font-weight: 400; margin-right: 8px; }
+  h3 { font-size: 18px; font-weight: 600; margin: 36px 0 14px 0; color: var(--color-accent); }
+  h4 { font-size: 15px; font-weight: 600; margin: 24px 0 10px 0; color: var(--color-text); }
+  p { margin-bottom: 14px; }
+  strong { font-weight: 600; }
+  a { color: var(--color-medium); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  hr { border: none; border-top: 1px solid var(--color-border); margin: 36px 0; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 28px 0; font-size: 13.5px; border-radius: 6px; overflow: hidden; }
+  table thead th { background: var(--color-accent); color: #fff; text-align: left; padding: 11px 14px; font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table tbody td { padding: 10px 14px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+  table tbody tr:nth-child(even) { background: var(--color-row-alt); }
+  table tbody tr:hover { background: #EEF2FF; }
+  table thead th:first-child { border-radius: 6px 0 0 0; }
+  table thead th:last-child { border-radius: 0 6px 0 0; }
+
+  /* PRIORITY TAGS */
+  .priority { display: inline-block; padding: 2px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .priority-critical { background: #FEE2E2; color: var(--color-critical); }
+  .priority-high { background: #FFF7ED; color: var(--color-high); }
+  .priority-medium { background: #EFF6FF; color: var(--color-medium); }
+  .priority-low { background: #F3F4F6; color: var(--color-low); }
+
+  /* LISTS */
+  ul, ol { margin: 10px 0 18px 28px; }
+  li { margin-bottom: 6px; }
+
+  /* CODE */
+  code { background: var(--color-code-bg); padding: 2px 6px; border-radius: 3px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; }
+  pre { background: var(--color-code-bg); padding: 16px 20px; border-radius: 6px; overflow-x: auto; margin: 14px 0 22px 0; font-size: 13px; line-height: 1.6; font-family: 'SF Mono', 'Fira Code', monospace; border: 1px solid var(--color-border); }
+
+  /* SCREENSHOTS */
+  .screenshot { max-width: 600px; max-height: 400px; object-fit: contain; border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin: 16px auto 20px auto; display: block; }
+
+  /* EXAMPLE BOX */
+  .example-box { background: #f0f4f8; border-left: 4px solid #1a1a1a; padding: 14px 18px; margin: 16px 0 24px 0; border-radius: 0 6px 6px 0; font-size: 13.5px; line-height: 1.7; }
+  .example-box strong { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--color-text-light); display: block; margin-bottom: 6px; }
+  .example-box a { color: var(--color-medium); }
+
+  /* ROADMAP */
+  .roadmap-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; padding: 4px 0; }
+  .roadmap-item input[type="checkbox"] { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--color-accent); flex-shrink: 0; }
+
+  /* BLOCKQUOTE */
+  blockquote { border-left: 3px solid var(--color-border); padding: 10px 18px; margin: 14px 0 18px 0; color: var(--color-text-light); font-style: italic; background: var(--color-row-alt); border-radius: 0 4px 4px 0; }
+
+  del { color: var(--color-text-light); }
+
+  /* FUNNEL */
+  .funnel { background: var(--color-code-bg); border-left: 4px solid var(--color-accent); padding: 20px 24px; border-radius: 0 6px 6px 0; margin: 16px 0 24px 0; font-family: 'SF Mono', monospace; font-size: 13.5px; line-height: 1.9; }
+
+  @media print {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 0; max-width: 100%; }
+    body { font-size: 11pt; }
+    table { font-size: 9pt; page-break-inside: avoid; }
+    a { color: var(--color-text); text-decoration: underline; }
+    .screenshot { max-width: 80%; }
+  }
+  @media (max-width: 900px) {
+    .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--color-border); }
+    .main { margin-left: 0; padding: 0 20px 60px 20px; }
+  }
+
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#section-00"><span class="num">00</span> Executive Summary</a></li>
+    <li><a href="#section-01"><span class="num">01</span> Technical Setup</a></li>
+    <li><a href="#section-02"><span class="num">02</span> SEO Health</a></li>
+    <li><a href="#section-03"><span class="num">03</span> Homepage</a></li>
+    <li><a href="#section-04"><span class="num">04</span> Collection Pages</a></li>
+    <li><a href="#section-05"><span class="num">05</span> Product Pages</a></li>
+    <li><a href="#section-06"><span class="num">06</span> Cart & Checkout</a></li>
+    <li><a href="#section-07"><span class="num">07</span> Navigation & Search</a></li>
+    <li><a href="#section-08"><span class="num">08</span> Design & UX</a></li>
+    <li><a href="#section-09"><span class="num">09</span> Analytics & Tracking</a></li>
+    <li><a href="#section-10"><span class="num">10</span> Competitor Analysis</a></li>
+    <li><a href="#section-11"><span class="num">11</span> Competitor References</a></li>
+  </ol>
+</nav>
+
+<div class="main">
+<div class="branded-header">
+  <h1>SHEVCHENKO</h1>
+  <div class="subtitle">Comprehensive Store Audit | April 2026</div>
+  <div class="prepared">Site: shevchenko.fashion &nbsp;|&nbsp; Platform: Shopify (Dawn 15.2.0)</div>
+</div>
+
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-00">
+<h2><span class="sec-num">00.</span> Executive Summary</h2>
+<p><strong>Date:</strong> April 8, 2026
+<strong>Site:</strong> https://shevchenko.fashion
+<strong>Platform:</strong> Shopify (Dawn 15.2.0)
+<strong>Brand:</strong> SHEVCHENKO — Ukrainian designer women's knitwear &amp; fashion</p>
+<hr />
+<h2>Executive Summary</h2>
+<p>SHEVCHENKO has strong brand fundamentals — beautiful product photography, quality materials (lamb wool), handmade production, and a compelling founder story. However, the online store is <strong>significantly underbuilt</strong> for a brand at the ₴7,000-10,000+ price point.</p>
+<p>The good news: the site runs on Shopify with the Dawn theme, which means every recommendation in this audit can be implemented without custom development. Most improvements require only app installations and theme editor configuration.</p>
+<hr />
+<h2>Key Findings</h2>
+<h3>Critical Issues (Fix First)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Issue</th>
+<th>Impact</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>Klaviyo Reviews installed — verify reviews are displayed prominently and being collected</td>
+<td>Social proof must be visible above the fold</td>
+<td><a href="05-product-pages.md">05-product-pages</a></td>
+</tr>
+<tr>
+<td>3</td>
+<td>No collection filters (size, color, price)</td>
+<td>Customers can't find products efficiently</td>
+<td><a href="04-collection-pages.md">04-collection-pages</a></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Empty H1 tag on homepage</td>
+<td>SEO — Google can't identify the page topic</td>
+<td><a href="01-technical-setup.md">01-technical-setup</a></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cyrillic URLs (encoded, unreadable)</td>
+<td>Poor SEO, ugly social sharing, analytics issues</td>
+<td><a href="02-seo-health.md">02-seo-health</a></td>
+</tr>
+<tr>
+<td>6</td>
+<td>86% of images missing alt text</td>
+<td>SEO + accessibility violation</td>
+<td><a href="01-technical-setup.md">01-technical-setup</a></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Broken English hreflang (pointing to non-existent EN version)</td>
+<td>Splitting Google ranking authority</td>
+<td><a href="02-seo-health.md">02-seo-health</a></td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>No color swatches</strong> — products have 2-3 colors but no way to switch on product page</td>
+<td>Customers can't find other colors, directly hurts add-to-cart rate</td>
+<td><a href="05-product-pages.md">05-product-pages</a></td>
+</tr>
+</tbody>
+</table>
+<h3>High Priority (Big Impact)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Issue</th>
+<th>Impact</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9</td>
+<td>Homepage has only hero + products (no trust badges, brand story, social proof)</td>
+<td>Poor first impression, low engagement</td>
+<td><a href="03-homepage.md">03-homepage</a></td>
+</tr>
+<tr>
+<td>11</td>
+<td>109 JS files (2.6 MB) — caused partly by 3 redundant app pairs (2 size charts, 2 SEO, 2 translation)</td>
+<td>Slow mobile, poor Core Web Vitals</td>
+<td><a href="01-technical-setup.md">01-technical-setup</a></td>
+</tr>
+<tr>
+<td>12</td>
+<td>No Microsoft Clarity / session recordings</td>
+<td>Can't see how users interact with the site</td>
+<td><a href="11-analytics-tracking.md">11-analytics-tracking</a></td>
+</tr>
+<tr>
+<td>13</td>
+<td>No trust badges on product or cart pages</td>
+<td>Purchase hesitation at decision point</td>
+<td><a href="05-product-pages.md">05-product-pages</a></td>
+</tr>
+<tr>
+<td>14</td>
+<td>Product descriptions lack depth (no model measurements, no styling tips)</td>
+<td>Incomplete information for purchase decision</td>
+<td><a href="05-product-pages.md">05-product-pages</a></td>
+</tr>
+<tr>
+<td>15</td>
+<td>No cross-sell / "Complete the Look" sections</td>
+<td>Missing AOV increase opportunity</td>
+<td><a href="05-product-pages.md">05-product-pages</a></td>
+</tr>
+</tbody>
+</table>
+<h3>Medium Priority (Important but not urgent)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Issue</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16</td>
+<td>Default Dawn typography (not premium enough)</td>
+<td><a href="08-design-ux.md">08-design-ux</a></td>
+</tr>
+<tr>
+<td>17</td>
+<td>No mega menu (flat category dropdown)</td>
+<td><a href="07-navigation-search.md">07-navigation-search</a></td>
+</tr>
+<tr>
+<td>18</td>
+<td>Footer incomplete (no email, no contact info, no payment icons)</td>
+<td><a href="07-navigation-search.md">07-navigation-search</a></td>
+</tr>
+<tr>
+<td>19</td>
+<td>No blog content strategy (only 1 post exists)</td>
+<td><a href="02-seo-health.md">02-seo-health</a></td>
+</tr>
+<tr>
+<td>20</td>
+<td>Announcement bar disabled — just enable it</td>
+<td><a href="03-homepage.md">03-homepage</a></td>
+</tr>
+<tr>
+<td>21</td>
+<td>English version not ready (internationalization)</td>
+<td><a href="10-internationalization.md">10-internationalization</a></td>
+</tr>
+<tr>
+<td>22</td>
+<td>Organization schema has 8 empty sameAs fields</td>
+<td><a href="01-technical-setup.md">01-technical-setup</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Implementation Roadmap</h2>
+<h3>Week 1-2: Quick Wins (No code required)</h3>
+<ul>
+<div class="roadmap-item"><input type="checkbox"> <span>Fix alt text on all images (Shopify Admin → Products + Theme Editor)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Fix empty H1 on homepage (Theme Editor → Hero section)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Install Microsoft Clarity (free, Shopify App Store)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Remove redundant apps: pick one size chart, one SEO, one translation app</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Verify Klaviyo Reviews is displaying prominently + collecting reviews</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Review and optimize existing Klaviyo flows (open rates, click rates)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Verify all key flows are active: welcome, abandoned cart, post-purchase, review request</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add trust badges below Add to Cart (Theme Editor)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add color swatches — merge color variants into single products OR link them via metafields</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Change homepage og:image from logo to lifestyle photo</span></div>
+</ul>
+<h3>Week 3-4: Core Improvements</h3>
+<ul>
+<div class="roadmap-item"><input type="checkbox"> <span>Convert all Cyrillic URLs to Latin + set up 301 redirects</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Enable collection page filters (Shopify Admin → Navigation)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add size guide link/popup to product pages (Kiwi app)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add collection banners and descriptions</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Build out homepage sections (trust bar, collection highlights, brand story, newsletter)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add announcement bar</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Deactivate English market until EN content is ready</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Fix heading structure and duplicate footer links</span></div>
+</ul>
+<h3>Month 2: Enhancement</h3>
+<ul>
+<div class="roadmap-item"><input type="checkbox"> <span>Upgrade typography (serif headings)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add "Complete the Look" cross-sell sections</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Set up mega menu</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Optimize footer (contact info, payment icons, newsletter)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Begin product description enrichment (model measurements, styling tips)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Audit and remove unused Shopify apps (reduce JS bloat)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Set up Google Search Console</span></div>
+</ul>
+<h3>Month 3+: Growth</h3>
+<ul>
+<div class="roadmap-item"><input type="checkbox"> <span>Translate and launch English version</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Start blog content strategy (2-4 posts/month)</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Implement loyalty/referral program</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Add product video content</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Consider premium theme migration</span></div>
+<div class="roadmap-item"><input type="checkbox"> <span>Set up Facebook retargeting audiences</span></div>
+</ul>
+<hr />
+<h2>Current Store Performance (March 2026)</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+<th>Benchmark</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Monthly sessions</td>
+<td>26,861</td>
+<td>—</td>
+<td>Decent, growing +1.7%</td>
+</tr>
+<tr>
+<td><strong>Conversion rate</strong></td>
+<td><strong>0.34%</strong></td>
+<td><strong>2-5% (UA fashion)</strong></td>
+<td><strong>6-15x below benchmark</strong></td>
+</tr>
+<tr>
+<td>Average order value</td>
+<td>₴10,158</td>
+<td>—</td>
+<td>Excellent (sets selling well)</td>
+</tr>
+<tr>
+<td>Monthly orders</td>
+<td>97</td>
+<td>—</td>
+<td>Growing +29%</td>
+</tr>
+<tr>
+<td>Net sales</td>
+<td>₴985,302/mo</td>
+<td>—</td>
+<td>Growing +39%</td>
+</tr>
+<tr>
+<td>Returning customer rate</td>
+<td>21.73%</td>
+<td>40-60%</td>
+<td>Needs improvement</td>
+</tr>
+<tr>
+<td>Returns</td>
+<td>₴0</td>
+<td>—</td>
+<td>Zero returns — excellent</td>
+</tr>
+</tbody>
+</table>
+<h3>Conversion Funnel Analysis</h3>
+<pre><code>Sessions:       26,861  (100%)
+                  ↓ ──── 98.3% DROP OFF ← Product pages not converting
+Added to cart:     448  (1.66%)
+                  ↓ ──── 39.5% drop off ← Cart friction
+Reached checkout:  271  (1.01%)
+                  ↓ ──── 65.7% DROP OFF ← Checkout abandonment
+Purchased:          93  (0.34%)
+</code></pre>
+<p><strong>The two biggest revenue opportunities:</strong></p>
+<ol>
+<li><strong>Product page → Add to cart (1.66% → 5%):</strong> Fixing size guide visibility, adding trust badges, reviews, better descriptions, and "Complete the Look" could 3x the add-to-cart rate.</li>
+<li><strong>Checkout → Purchase (34.3% → 55%):</strong> Adding trust signals in cart, clear shipping info, and abandoned checkout emails could recover 50+ additional orders per month = ₴500K+ additional revenue.</li>
+</ol>
+<h3>Top Products (validates "Complete the Look" strategy)</h3>
+<table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Sales</th>
+<th>Growth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cotton cardigan + pants set (graphite)</td>
+<td>₴109.2K</td>
+<td>+995%</td>
+</tr>
+<tr>
+<td>Wool cardigan + midi skirt set (blue)</td>
+<td>₴95.2K</td>
+<td>+14%</td>
+</tr>
+<tr>
+<td>Cotton cardigan + pants set (mocha)</td>
+<td>₴59.3K</td>
+<td>+526%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key insight:</strong> Sets/bundles are the top sellers with explosive growth. This strongly validates the "Complete the Look" cross-sell recommendation — customers already want to buy outfits, not individual pieces.</p>
+<hr />
+<h2>Expected Results</h2>
+<p>Based on industry benchmarks, the competitor gap analysis, and actual store data:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Current</th>
+<th>Target</th>
+<th>Revenue Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conversion rate</td>
+<td>0.34%</td>
+<td>1-2%</td>
+<td>3-6x more orders = ₴2-5M+ additional/mo</td>
+</tr>
+<tr>
+<td>Add-to-cart rate</td>
+<td>1.66%</td>
+<td>5%+</td>
+<td>3x more carts</td>
+</tr>
+<tr>
+<td>Checkout completion</td>
+<td>34.3%</td>
+<td>55%+</td>
+<td>+50 orders/month = ₴500K+/mo</td>
+</tr>
+<tr>
+<td>AOV</td>
+<td>₴10,158</td>
+<td>₴11,000+</td>
+<td>+10% with cross-sells</td>
+</tr>
+<tr>
+<td>Organic search traffic</td>
+<td>—</td>
+<td>+30-50%</td>
+<td>3-6 months after SEO fixes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Technical Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Current</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Theme</td>
+<td>Dawn 15.2.0 (free)</td>
+<td>Dawn customized / Premium theme</td>
+</tr>
+<tr>
+<td>Page weight</td>
+<td>2.6 MB</td>
+<td>&lt;1.5 MB</td>
+</tr>
+<tr>
+<td>JS files</td>
+<td>109</td>
+<td>&lt;40</td>
+</tr>
+<tr>
+<td>Image alt coverage</td>
+<td>14%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>URL language</td>
+<td>Mixed Cyrillic/Latin</td>
+<td>100% Latin</td>
+</tr>
+<tr>
+<td>Email subscribers</td>
+<td>Klaviyo active</td>
+<td>Growing list, optimize flows</td>
+</tr>
+<tr>
+<td>Product reviews</td>
+<td>Klaviyo Reviews installed</td>
+<td>5+ per product, displayed prominently</td>
+</tr>
+<tr>
+<td>Collection filters</td>
+<td>None</td>
+<td>Size, color, price</td>
+</tr>
+<tr>
+<td>Homepage sections</td>
+<td>2 (hero + products)</td>
+<td>6-8 sections</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Audit Sections</h2>
+<ol>
+<li><a href="01-technical-setup.md">Technical Setup</a> — Theme, speed, images, analytics, headings, schema</li>
+<li><a href="02-seo-health.md">SEO Health</a> — URLs, hreflang, meta tags, canonicals, internal linking</li>
+<li><a href="03-homepage.md">Homepage</a> — Hero, trust badges, collections, brand story, social proof, newsletter</li>
+<li><a href="04-collection-pages.md">Collection Pages</a> — Filters, sorting, cards, banners, mobile</li>
+<li><a href="05-product-pages.md">Product Pages</a> — Size guide, reviews, descriptions, trust, cross-sells, photos</li>
+<li><a href="06-cart-checkout.md">Cart &amp; Checkout</a> — Free shipping bar, upsells, trust, abandonment</li>
+<li><a href="07-navigation-search.md">Navigation &amp; Search</a> — Mega menu, predictive search, footer, mobile nav</li>
+<li><a href="08-design-ux.md">Design &amp; UX</a> — Typography, mobile, layout, imagery, contact page</li>
+<li><a href="09-analytics-tracking.md">Analytics &amp; Tracking</a> — GA4, Clarity, GSC, Facebook Pixel, KPI dashboard</li>
+<li><a href="10-competitor-analysis.md">Competitor Analysis</a> — Sleeper, Frankie Shop, Rouje, Nanushka, Cult Gaia benchmarks</li>
+<li><a href="11-competitor-references.md">Competitor References</a> — Live URLs for every design recommendation</li>
+</ol>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-01">
+<h2><span class="sec-num">01.</span> Technical Setup</h2>
+<h2>Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Platform</td>
+<td>Shopify (Dawn 15.2.0 — free theme)</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td>shevchenko.fashion</td>
+</tr>
+<tr>
+<td>Shopify Store</td>
+<td>3ghi0h-pn.myshopify.com</td>
+</tr>
+<tr>
+<td>Currency</td>
+<td>UAH</td>
+</tr>
+<tr>
+<td>Country</td>
+<td>Ukraine</td>
+</tr>
+<tr>
+<td>Locale</td>
+<td>Ukrainian (uk)</td>
+</tr>
+<tr>
+<td>GA4</td>
+<td>Installed</td>
+</tr>
+<tr>
+<td>Facebook Pixel</td>
+<td>Installed</td>
+</tr>
+<tr>
+<td>Clarity / Hotjar</td>
+<td>Not installed</td>
+</tr>
+<tr>
+<td>SSL</td>
+<td>Active (HTTPS)</td>
+</tr>
+<tr>
+<td>Favicon</td>
+<td>Present</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1.1 Theme: Dawn 15.2.0</h2>
+<h3>Current State</h3>
+<p>The site runs on <strong>Dawn</strong>, Shopify's default free theme (version 15.2.0). Dawn is lightweight and fast out of the box, but it's the most commonly used Shopify theme — meaning the store looks similar to thousands of other Shopify stores.</p>
+<h3>Recommendation</h3>
+<p><strong>Stay on Dawn and customize with code.</strong> Dawn is a solid, fast foundation. Rather than paying $380 for a premium theme (and dealing with theme lock-in), invest in targeted code customizations that make Dawn feel premium and unique:</p>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Custom typography</strong> — add a serif font for headings (Cormorant Garamond, Playfair Display) via theme code</li>
+<li><strong>Product page gallery upgrade</strong> — replace Dawn's default thumbnail grid with a modern gallery (see Product Pages section for details)</li>
+<li><strong>Custom sections</strong> — add brand story, trust badges, and lookbook sections via Liquid code</li>
+<li><strong>Mega menu</strong> — add visual category navigation with images</li>
+<li><strong>Micro-interactions</strong> — subtle animations on hover, fade-in on scroll</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul>
+<li>Nanushka — elegant serif headings: <a href="https://nanushka.com" target="_blank">nanushka.com</a></li>
+<li>Rouje — script font for campaigns: <a href="https://rouje.com/en" target="_blank">rouje.com/en</a></li>
+<li>Cult Gaia — distinctive script logo: <a href="https://cultgaia.com" target="_blank">cultgaia.com</a></li>
+</ul></div>
+
+<p>All of these can be achieved by a developer editing Dawn's Liquid/CSS code directly, without changing themes. This approach is more flexible, avoids vendor lock-in, and lets you control exactly what changes.</p>
+<h3>Expected Impact</h3>
+<p>Targeted code customizations on Dawn achieve the same visual result as a premium theme, with better performance and lower cost.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> UX / Trust / Conversion</p>
+<hr />
+<h2>1.2 App Redundancy — Critical Performance Issue</h2>
+<h3>Current State</h3>
+<p>14 apps are installed. Several are <strong>duplicates</strong> serving the same function:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>App 1</th>
+<th>App 2</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Size Charts</td>
+<td>BF Size Charts</td>
+<td>MP Size Chart &amp; Size Guide</td>
+<td><strong>Remove one</strong></td>
+</tr>
+<tr>
+<td>SEO &amp; Speed</td>
+<td>SearchPie SEO &amp; Speed</td>
+<td>Tapita SEO &amp; Speed</td>
+<td><strong>Remove one</strong></td>
+</tr>
+<tr>
+<td>Translation</td>
+<td>Translate &amp; Adapt (Shopify)</td>
+<td>Transtore</td>
+<td><strong>Remove one</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Each unnecessary app adds 2-5 JavaScript files and 1-3 CSS files to every page load. <strong>Removing 3 redundant apps could eliminate 10-15 JavaScript files</strong> and measurably improve page speed.</p>
+<h3>Full App Inventory</h3>
+<table>
+<thead>
+<tr>
+<th>App</th>
+<th>Purpose</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Klaviyo Reviews</td>
+<td>Product reviews</td>
+<td>Keep</td>
+</tr>
+<tr>
+<td>BF Size Charts</td>
+<td>Size chart display</td>
+<td><strong>Pick one</strong></td>
+</tr>
+<tr>
+<td>MP Size Chart &amp; Size Guide</td>
+<td>Size chart display</td>
+<td><strong>Pick one</strong></td>
+</tr>
+<tr>
+<td>SearchPie SEO &amp; Speed</td>
+<td>SEO optimization</td>
+<td><strong>Pick one</strong></td>
+</tr>
+<tr>
+<td>Tapita SEO &amp; Speed</td>
+<td>SEO optimization</td>
+<td><strong>Pick one</strong></td>
+</tr>
+<tr>
+<td>Translate &amp; Adapt</td>
+<td>Translation (Shopify native)</td>
+<td><strong>Pick one</strong> (recommend keeping this one — it's Shopify's native tool)</td>
+</tr>
+<tr>
+<td>Transtore</td>
+<td>Translation</td>
+<td><strong>Pick one</strong></td>
+</tr>
+<tr>
+<td>Flow</td>
+<td>Shopify automation</td>
+<td>Keep</td>
+</tr>
+<tr>
+<td>Search &amp; Discovery</td>
+<td>Product search &amp; recommendations</td>
+<td>Keep</td>
+</tr>
+<tr>
+<td>Releasit COD Form</td>
+<td>Cash on delivery</td>
+<td>Keep (important for UA market)</td>
+</tr>
+<tr>
+<td>MonoPay Shevchenko</td>
+<td>Monobank payments</td>
+<td>Keep</td>
+</tr>
+<tr>
+<td>Messaging</td>
+<td>Chat/messaging</td>
+<td>Keep</td>
+</tr>
+</tbody>
+</table>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Size charts:</strong> Compare BF Size Charts and MP Size Chart. Keep whichever is actively displayed on product pages. Uninstall the other.</li>
+<li><strong>SEO apps:</strong> Compare SearchPie and Tapita. Keep whichever provides the most value (check which features you actually use). Uninstall the other. Note: Dawn + Shopify's built-in SEO handles most basics without any app.</li>
+<li><strong>Translation:</strong> Keep Shopify's native "Translate &amp; Adapt" (free, best Shopify integration). Evaluate if Transtore provides additional value — if not, remove it.</li>
+<li><strong>After uninstalling</strong>, check theme code for leftover app snippets. Some apps leave residual code after uninstall.</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Removing 3 redundant apps can reduce JavaScript files by 10-15 and page weight by 100-200 KB. This directly improves load time, especially on mobile.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> Performance / SEO</p>
+<hr />
+<h2>1.3 Page Speed &amp; Resource Load</h2>
+<h3>Current State</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+<th>Rating</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total Resources</td>
+<td>196</td>
+<td>Poor</td>
+</tr>
+<tr>
+<td>Total Transfer Size</td>
+<td>2,624 KB (2.6 MB)</td>
+<td>Needs Improvement</td>
+</tr>
+<tr>
+<td>JavaScript Files</td>
+<td>109</td>
+<td>Poor</td>
+</tr>
+<tr>
+<td>CSS Files</td>
+<td>44</td>
+<td>Poor</td>
+</tr>
+<tr>
+<td>Image Transfer</td>
+<td>1,308 KB</td>
+<td>Needs Improvement</td>
+</tr>
+<tr>
+<td>Font Files</td>
+<td>2 (36 KB)</td>
+<td>Good</td>
+</tr>
+<tr>
+<td>First Contentful Paint</td>
+<td>~768ms*</td>
+<td>Good</td>
+</tr>
+<tr>
+<td>DOM Complete</td>
+<td>~1,321ms*</td>
+<td>Good</td>
+</tr>
+</tbody>
+</table>
+<p>*Measured in headless browser without network throttling. Real mobile users on 4G will experience 2-4x longer load times.</p>
+<h3>Resource Breakdown</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Files</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JavaScript</td>
+<td>109</td>
+<td>1,127 KB</td>
+</tr>
+<tr>
+<td>Images</td>
+<td>17</td>
+<td>1,308 KB</td>
+</tr>
+<tr>
+<td>CSS</td>
+<td>44</td>
+<td>80 KB</td>
+</tr>
+<tr>
+<td>Fonts</td>
+<td>2</td>
+<td>36 KB</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>24</td>
+<td>73 KB</td>
+</tr>
+</tbody>
+</table>
+<h3>Top Heaviest Resources</h3>
+<table>
+<thead>
+<tr>
+<th>Size</th>
+<th>Type</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>345 KB</td>
+<td>JS</td>
+<td>Shopify Web Pixel hooks</td>
+</tr>
+<tr>
+<td>198 KB</td>
+<td>Image</td>
+<td>photo_2025-06-23_15.39.31.jpg</td>
+</tr>
+<tr>
+<td>173 KB</td>
+<td>Image</td>
+<td>photo_2025-06-23_15.13.41_1.jpg</td>
+</tr>
+<tr>
+<td>124 KB</td>
+<td>Image</td>
+<td>photo_2025-06-2315.13.35.jpg</td>
+</tr>
+<tr>
+<td>121 KB</td>
+<td>Image</td>
+<td>IMG_5502_1.heic</td>
+</tr>
+<tr>
+<td>115 KB</td>
+<td>Image</td>
+<td>photo_2025-06-23_15.13.38_1.jpg</td>
+</tr>
+<tr>
+<td>108 KB</td>
+<td>JS</td>
+<td>approval-scopes-FullScreenBackground.js</td>
+</tr>
+<tr>
+<td>101 KB</td>
+<td>Image</td>
+<td>photo_2025-06-23_15.13.39_1.jpg</td>
+</tr>
+<tr>
+<td>95 KB</td>
+<td>JS</td>
+<td>Facebook Events (fbevents.js)</td>
+</tr>
+<tr>
+<td>74 KB</td>
+<td>Image</td>
+<td>IMG_9406.jpg</td>
+</tr>
+</tbody>
+</table>
+<h3>Best Practice (2026)</h3>
+<ul>
+<li>Total page weight should be under 1.5 MB for mobile (currently 2.6 MB)</li>
+<li>JavaScript files should be under 30 (currently 109)</li>
+<li>All images should use WebP or AVIF format (currently using JPG and HEIC)</li>
+<li>First Contentful Paint under 1.8s on real 4G connection</li>
+</ul>
+<h3>Action Steps</h3>
+<p><strong>Images (highest impact):</strong></p>
+<ol>
+<li><strong>Convert all images to WebP format</strong> — Shopify CDN does this automatically if you use the <code>| image_url</code> filter in Liquid. Check that all theme image tags use this filter.</li>
+<li><strong>Remove HEIC images</strong> — HEIC is not supported by most browsers. Re-upload those product images as JPG or PNG (Shopify will auto-convert to WebP for delivery).</li>
+<li><strong>Set explicit image dimensions</strong> — add <code>width</code> and <code>height</code> attributes to all <code>&lt;img&gt;</code> tags to prevent Cumulative Layout Shift.</li>
+<li><strong>Lazy load below-the-fold images</strong> — Dawn should handle this by default, but verify all product grid images use <code>loading="lazy"</code>.</li>
+</ol>
+<p><strong>JavaScript (medium impact):</strong></p>
+<ol>
+<li><strong>Audit installed Shopify apps</strong> — 109 JS files suggests multiple apps are loading scripts. In Shopify Admin → Settings → Apps, review each installed app. Remove any unused apps, as they often leave residual scripts.</li>
+<li><strong>Defer non-critical scripts</strong> — Facebook Pixel (95 KB) and Shopify Web Pixel (345 KB) can be deferred. In theme code, add <code>defer</code> attribute to non-critical script tags.</li>
+</ol>
+<p><strong>CSS:</strong></p>
+<ol>
+<li>44 CSS files is high for Dawn. Check if apps are injecting unnecessary stylesheets. Each removed app can eliminate 2-5 CSS files.</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Reducing page weight from 2.6 MB to under 1.5 MB and cutting JS files from 109 to under 40 can improve mobile load time by 40-60%. This directly impacts:</p>
+<ul>
+<li>Google search rankings (Core Web Vitals are a ranking factor)</li>
+<li>Bounce rate (53% of mobile users leave if page takes &gt;3 seconds)</li>
+<li>Conversion rate (every 100ms improvement = ~1% conversion increase)</li>
+</ul>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> SEO / Conversion / UX</p>
+<hr />
+<h2>1.4 Image Optimization &amp; Alt Text</h2>
+<h3>Current State</h3>
+<p>Homepage image audit revealed <strong>critical alt text issues</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Images with alt text</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Images missing alt text</td>
+<td>18</td>
+</tr>
+<tr>
+<td><strong>Alt text coverage</strong></td>
+<td><strong>14%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Most product images, hero images, and lifestyle photos have <strong>no alt text at all</strong>.</p>
+<p>Additionally:</p>
+<ul>
+<li>Image file names are auto-generated timestamps (e.g., <code>photo_2025-06-23_15.39.31.jpg</code>) — not descriptive</li>
+<li>HEIC format files present (browser compatibility issue)</li>
+<li>Hero image is loaded as <code>eager</code> but product images correctly use <code>lazy</code></li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<ul>
+<li>100% of images must have descriptive alt text (SEO + accessibility requirement)</li>
+<li>Alt text should describe the product: "Beige viscose blouse with bow detail — SHEVCHENKO"</li>
+<li>File names should be descriptive: <code>shevchenko-beige-viscose-blouse-front.webp</code></li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Shopify Admin → Products</strong>, edit each product and add alt text to every image. Use format: <code>[Product Name] - [View/Detail] — SHEVCHENKO</code></li>
+<li><strong>In Shopify Admin → Content → Files</strong>, rename uploaded files with descriptive names before uploading</li>
+<li><strong>For the hero image and lifestyle images</strong>, add alt text via the theme editor (Customize → select image → add alt text)</li>
+<li><strong>Re-upload any HEIC files</strong> as JPG or PNG format</li>
+</ol>
+<h3>Expected Impact</h3>
+<ul>
+<li>Better Google Image Search rankings (images can drive 20-30% of fashion site traffic)</li>
+<li>Improved accessibility score</li>
+<li>Better social sharing previews</li>
+</ul>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> SEO / Accessibility</p>
+<hr />
+<h2>1.5 Analytics &amp; Tracking Setup</h2>
+<h3>Current State</h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google Analytics 4 (GA4)</td>
+<td>Installed</td>
+</tr>
+<tr>
+<td>Facebook Pixel</td>
+<td>Installed</td>
+</tr>
+<tr>
+<td>Microsoft Clarity</td>
+<td>Not installed</td>
+</tr>
+<tr>
+<td>Hotjar</td>
+<td>Not installed</td>
+</tr>
+<tr>
+<td>Google Search Console</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Google Tag Manager</td>
+<td>Not detected</td>
+</tr>
+</tbody>
+</table>
+<h3>Best Practice (2026)</h3>
+<p>A complete analytics stack for a fashion e-commerce brand should include:</p>
+<ol>
+<li><strong>GA4</strong> — traffic, conversions, user journeys ✓</li>
+<li><strong>Facebook Pixel</strong> — ad tracking, retargeting ✓</li>
+<li><strong>Session recordings</strong> — see exactly how users interact with your site ✗</li>
+<li><strong>Heatmaps</strong> — understand where users click and scroll ✗</li>
+<li><strong>Google Search Console</strong> — monitor search performance, indexing issues ✗ (unconfirmed)</li>
+<li><strong>Google Tag Manager</strong> — centralize all tracking scripts ✗</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Install Microsoft Clarity</strong> (free) — Shopify App Store → search "Microsoft Clarity" → install. This gives you session recordings + heatmaps at no cost. No code changes needed.</li>
+<li><strong>Verify Google Search Console</strong> — go to search.google.com/search-console → add property → verify via DNS or HTML tag. Submit sitemap.xml.</li>
+<li><strong>Set up GA4 enhanced ecommerce</strong> — in Shopify Admin → Settings → Customer events, verify GA4 is tracking: view_item, add_to_cart, begin_checkout, purchase events.</li>
+<li><strong>Consider Hotjar</strong> (paid) as a more advanced alternative to Clarity for session recordings with user feedback features.</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Session recordings will reveal specific UX friction points that are impossible to detect from analytics data alone. Clarity is free and typically reveals 3-5 quick-win improvements within the first week of use.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion (enables data-driven optimization)</p>
+<hr />
+<h2>1.6 Heading Structure</h2>
+<h3>Current State</h3>
+<p>The homepage heading hierarchy is broken:</p>
+<pre><code>H2: Ваш кошик порожній (Your cart is empty — cart drawer)
+H2: Ваш кошик (Your cart — cart drawer)
+H2: Розрахункова сума (Estimated total — cart drawer)
+H2: Країна/регіон (Country/region — cart drawer)
+H2: Мова (Language — cart drawer)
+H1: (EMPTY)
+H3: Блуза з віскози, бежевий (product card)
+H3: Спідниця з віскози, бежевий (product card)
+H2: Країна/регіон (footer)
+H2: Мова (footer)
+</code></pre>
+<p><strong>Problems:</strong></p>
+<ul>
+<li>The H1 tag is <strong>empty</strong> — this is the most important heading for SEO</li>
+<li>Cart drawer elements are using H2 tags (should be hidden from page heading hierarchy)</li>
+<li>No clear heading hierarchy (H1 → H2 → H3)</li>
+<li>Product names jump from H1 to H3 (skipping H2)</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<ul>
+<li>Every page must have exactly one H1 containing the primary keyword</li>
+<li>Homepage H1 should be: "SHEVCHENKO — Авторський жіночий одяг" or similar</li>
+<li>Heading hierarchy should be sequential: H1 → H2 → H3</li>
+<li>Cart drawer/modal elements should use <code>aria-label</code> instead of heading tags</li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Shopify Theme Editor</strong> → Home page → find the hero/banner section → set the heading to H1 and add text like "Авторський жіночий трикотаж з вовни ягня"</li>
+<li><strong>In Dawn theme code</strong> (sections/cart-drawer.liquid), change <code>&lt;h2&gt;</code> tags in the cart drawer to <code>&lt;p&gt;</code> or <code>&lt;span&gt;</code> with appropriate aria labels</li>
+<li>Ensure each page has a unique, keyword-rich H1</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Fixing the empty H1 alone can improve search rankings for brand + category keywords. Google uses H1 as a strong signal for page topic relevance.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> SEO</p>
+<hr />
+<h2>1.7 Structured Data (Schema Markup)</h2>
+<h3>Current State</h3>
+<p><strong>Homepage schemas:</strong></p>
+<ul>
+<li>✓ Organization schema (name, logo, URL, Instagram link)</li>
+<li>✓ WebSite schema with SearchAction</li>
+<li>✗ No LocalBusiness schema</li>
+<li>✗ Organization <code>sameAs</code> has 8 empty strings (only Instagram is filled)</li>
+</ul>
+<p><strong>Product page schemas:</strong></p>
+<ul>
+<li>✓ ProductGroup schema (brand, category, description, variants)</li>
+<li>✓ Organization schema</li>
+<li>✗ No Review/Rating schema (no reviews exist)</li>
+<li>✗ No BreadcrumbList schema</li>
+<li>✗ No FAQ schema</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Fashion e-commerce should have:</p>
+<ol>
+<li><strong>Product schema</strong> with price, availability, images, reviews → enables rich snippets in Google</li>
+<li><strong>BreadcrumbList schema</strong> → shows navigation path in search results</li>
+<li><strong>Organization schema</strong> with all social links filled → knowledge panel</li>
+<li><strong>FAQ schema</strong> on product pages → extra search result real estate</li>
+<li><strong>Review/AggregateRating schema</strong> → star ratings in search results</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Fix Organization sameAs</strong> — in theme code (snippets/structured-data.liquid or similar), fill in all social media URLs or remove empty strings</li>
+<li><strong>Add BreadcrumbList schema</strong> — Dawn supports this; enable in theme settings or add via Liquid snippet</li>
+<li><strong>Add review system</strong> (see Product Page section) — this automatically generates Review schema</li>
+<li><strong>Add FAQ schema</strong> to product pages for common questions (sizing, care, shipping)</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Rich snippets (star ratings, price, availability in Google results) can increase click-through rate by 20-35%. BreadcrumbList improves site structure signals for Google.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> SEO</p>
+<hr />
+<h2>1.8 Robots.txt &amp; Sitemap</h2>
+<h3>Current State</h3>
+<ul>
+<li><strong>robots.txt:</strong> Standard Shopify-generated file. Properly blocks /admin, /cart, /checkout. No custom rules needed.</li>
+<li><strong>sitemap.xml:</strong> Auto-generated by Shopify. Contains product, collection, and page sitemaps. Working correctly.</li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Submit sitemap to Google Search Console</strong> (if not already done): Go to GSC → Sitemaps → add <code>https://shevchenko.fashion/sitemap.xml</code></li>
+<li>No changes needed to robots.txt</li>
+</ol>
+<p><span class="priority priority-low">Low</span> (already correct)
+<strong>Impact Area:</strong> SEO</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-02">
+<h2><span class="sec-num">02.</span> SEO Health</h2>
+<h2>Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Canonical tags</td>
+<td>Present</td>
+<td>Correct on homepage</td>
+</tr>
+<tr>
+<td>Hreflang tags</td>
+<td>Present</td>
+<td>uk, en, x-default configured</td>
+</tr>
+<tr>
+<td>Meta title</td>
+<td>Present</td>
+<td>Good keyword usage</td>
+</tr>
+<tr>
+<td>Meta description</td>
+<td>Present</td>
+<td>Good, brand-focused</td>
+</tr>
+<tr>
+<td>Open Graph tags</td>
+<td>Present</td>
+<td>Complete set</td>
+</tr>
+<tr>
+<td>Twitter card</td>
+<td>Present</td>
+<td>summary_large_image</td>
+</tr>
+<tr>
+<td>URL structure</td>
+<td>Issues</td>
+<td>Cyrillic URLs, inconsistent language</td>
+</tr>
+<tr>
+<td>Sitemap</td>
+<td>Present</td>
+<td>Auto-generated by Shopify</td>
+</tr>
+<tr>
+<td>Robots.txt</td>
+<td>Present</td>
+<td>Standard Shopify</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2.1 URL Structure — Critical Issues</h2>
+<h3>Current State</h3>
+<p>The site has a <strong>major URL consistency problem</strong>. Product and collection URLs mix Cyrillic and Latin characters without a clear pattern:</p>
+<p><strong>English URLs (correct):</strong></p>
+<ul>
+<li><code>/products/blouse-viscose-beige</code></li>
+<li><code>/products/chocolate-lamb-wool-cape</code></li>
+<li><code>/products/velvet-overalls-beige-caramel</code></li>
+<li><code>/collections/new</code></li>
+<li><code>/collections/spring-summer-2026</code></li>
+</ul>
+<p><strong>Cyrillic URLs (problematic):</strong></p>
+<ul>
+<li><code>/collections/сукні</code> (dresses)</li>
+<li><code>/collections/низи</code> (bottoms)</li>
+<li><code>/collections/верхи</code> (tops)</li>
+<li><code>/collections/взуття</code> (shoes)</li>
+<li><code>/collections/верхній-одяг</code> (outerwear)</li>
+<li><code>/collections/аксессуари</code> (accessories)</li>
+<li><code>/collections/знижки</code> (sale)</li>
+<li><code>/pages/комплекти</code> (sets)</li>
+<li><code>/pages/доставка</code> (delivery)</li>
+<li><code>/pages/обміни-та-повернення</code> (returns)</li>
+<li><code>/pages/розмірна-сітка</code> (size chart)</li>
+<li><code>/pages/про-нас</code> (about)</li>
+</ul>
+<p><strong>What this looks like in browser/sharing:</strong>
+The Cyrillic URLs get encoded to long, unreadable strings:
+<code>https://shevchenko.fashion/collections/%D1%81%D1%83%D0%BA%D0%BD%D1%96</code></p>
+<p>This is terrible for:</p>
+<ul>
+<li><strong>SEO</strong> — Google prefers clean, readable URLs with relevant keywords</li>
+<li><strong>CTR</strong> — Users are less likely to click on encoded URLs in search results</li>
+<li><strong>Sharing</strong> — When shared on social media or messengers, encoded URLs look spammy</li>
+<li><strong>Analytics</strong> — Harder to read in GA4 reports</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>All URLs should be in Latin characters (English), lowercase, hyphen-separated:</p>
+<ul>
+<li><code>/collections/dresses</code> (not <code>/collections/сукні</code>)</li>
+<li><code>/collections/tops</code> (not <code>/collections/верхи</code>)</li>
+<li><code>/pages/about-us</code> (not <code>/pages/про-нас</code>)</li>
+<li><code>/pages/delivery</code> (not <code>/pages/доставка</code>)</li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Shopify Admin → Products → Collections</strong>, edit each collection with a Cyrillic URL handle:</li>
+<li>"Сукні" → URL handle: <code>dresses</code></li>
+<li>"Низи" → URL handle: <code>bottoms</code></li>
+<li>"Верхи" → URL handle: <code>tops</code></li>
+<li>"Взуття" → URL handle: <code>shoes</code></li>
+<li>"Верхній одяг" → URL handle: <code>outerwear</code></li>
+<li>"Аксессуари" → URL handle: <code>accessories</code></li>
+<li>"Знижки" → URL handle: <code>sale</code></li>
+<li>
+<p>"Подарункові сертифікати" → URL handle: <code>gift-certificates</code></p>
+</li>
+<li>
+<p><strong>In Shopify Admin → Pages</strong>, edit each page URL handle:</p>
+</li>
+<li>"Комплекти" → <code>sets</code></li>
+<li>"Доставка" → <code>delivery</code></li>
+<li>"Обміни та повернення" → <code>returns-exchanges</code></li>
+<li>"Розмірна сітка" → <code>size-chart</code></li>
+<li>"Про нас" → <code>about</code></li>
+<li>"Міссія та цінності" → <code>mission-values</code></li>
+<li>
+<p>"Політика конфіденційності" → <code>privacy-policy</code></p>
+</li>
+<li>
+<p><strong>Set up 301 redirects</strong> — In Shopify Admin → Settings → Navigation → URL Redirects, add redirects from old Cyrillic URLs to new Latin URLs. This preserves any existing SEO value.</p>
+</li>
+<li>
+<p><strong>For Cyrillic product URLs</strong>, update the handle in Shopify Admin → Products → [Product] → SEO → URL handle</p>
+</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Clean URLs improve:</p>
+<ul>
+<li>Search result click-through rate by 10-25%</li>
+<li>Social sharing appearance</li>
+<li>Analytics readability</li>
+<li>Overall SEO authority</li>
+</ul>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> SEO / UX</p>
+<hr />
+<h2>2.2 Hreflang &amp; Language Configuration</h2>
+<h3>Current State</h3>
+<p>Hreflang tags are present on the homepage:</p>
+<pre><code class="language-html">&lt;link rel=&quot;alternate&quot; hreflang=&quot;x-default&quot; href=&quot;https://shevchenko.fashion/&quot; /&gt;
+&lt;link rel=&quot;alternate&quot; hreflang=&quot;uk&quot; href=&quot;https://shevchenko.fashion/&quot; /&gt;
+&lt;link rel=&quot;alternate&quot; hreflang=&quot;en&quot; href=&quot;https://shevchenko.fashion/en&quot; /&gt;
+</code></pre>
+<p><strong>Issues found:</strong></p>
+<ul>
+<li>The <code>/en</code> version is referenced in hreflang but the user confirmed there is currently no English version live. This means Google is indexing a broken/incomplete English version.</li>
+<li>The existing audit (2026-04-07) mentioned missing hreflang — but they are actually present. The issue is that they point to a non-existent or incomplete page.</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<ul>
+<li>Hreflang tags should only reference fully translated, live pages</li>
+<li>Each language version must be fully translated (navigation, product descriptions, policies)</li>
+<li>Use Shopify Markets for proper multi-language setup</li>
+</ul>
+<h3>Action Steps</h3>
+<p><strong>Immediate (before EN version is ready):</strong></p>
+<ol>
+<li><strong>Remove or disable the English market</strong> in Shopify Admin → Settings → Markets until the English version is fully ready. This prevents Google from indexing incomplete English pages.</li>
+<li>Alternatively, set the English market to "inactive" status.</li>
+</ol>
+
+<h3>Expected Impact</h3>
+<p>Removing broken English hreflang prevents Google from splitting your ranking authority between a working Ukrainian page and a broken English page. This can recover lost organic traffic within 2-4 weeks.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> SEO</p>
+<hr />
+<h2>2.3 Meta Tags &amp; Open Graph</h2>
+<h3>Current State</h3>
+<p><strong>Homepage:</strong>
+| Tag | Content | Quality |
+|-----|---------|---------|
+| Title | SHEVCHENKO – Авторський жіночий трикотаж з вовни ягня | Офіційний сайт | Good |
+| Description | SHEVCHENKO — бренд жіночого одягу. Авторський трикотаж, преміальні матеріали, ручна робота. Лімітовані колекції для тих, хто цінує тепло, стиль і унікальність. | Good |
+| og:title | Same as title | Good |
+| og:description | Same as description | Good |
+| og:image | Logo PNG (not a lifestyle/product photo) | Needs Improvement |
+| og:type | website | Correct |
+| twitter:card | summary_large_image | Good |</p>
+<h3>Issues</h3>
+<ol>
+<li><strong>og:image uses the logo</strong> instead of a lifestyle/product photo. When the homepage is shared on social media, it shows the brand logo rather than an attractive product shot.</li>
+<li><strong>Title could be more concise</strong> — at 73 characters it's slightly long. Google typically displays 50-60 characters.</li>
+<li><strong>Facebook domain verification</strong> is set (<code>abbplq43of54y1qmve8iyvwz2olxht</code>) — good.</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Change og:image</strong> to a high-quality lifestyle photo (model wearing Shevchenko clothing). Upload a 1200x628px image in Shopify → Theme → Social sharing image.</li>
+<li><strong>Optimize title length</strong> — consider: "SHEVCHENKO — Авторський жіночий трикотаж | Офіційний сайт" (56 chars)</li>
+<li><strong>Add unique meta descriptions for every collection and product page</strong> — check in Shopify Admin → Products/Collections → SEO settings</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>A compelling og:image increases social sharing click-through by 2-3x. Optimized title length ensures full display in Google search results.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> SEO / Social traffic</p>
+<hr />
+<h2>2.4 Canonical Tags</h2>
+<h3>Current State</h3>
+<p>Canonical tags are correctly implemented on the homepage:</p>
+<pre><code class="language-html">&lt;link rel=&quot;canonical&quot; href=&quot;https://shevchenko.fashion/&quot; /&gt;
+</code></pre>
+<p>Shopify handles canonical tags automatically for product pages with variants, collection pagination, and filtered views.</p>
+<h3>Action Steps</h3>
+<p>No immediate action needed. Shopify handles this correctly by default.</p>
+<p><span class="priority priority-low">Low</span> (already correct)
+<strong>Impact Area:</strong> SEO</p>
+<hr />
+<h2>2.5 Internal Linking Structure</h2>
+<h3>Current State</h3>
+<p>The site has <strong>44 internal links</strong> on the homepage, distributed across:</p>
+<ul>
+<li>Main navigation (13 links: Home, New, SS 2026, collab, categories)</li>
+<li>Product cards in featured sections (12+ product links)</li>
+<li>Footer links (Delivery, Returns, Size Chart, Search, Blog, About, Contact, Privacy, Mission)</li>
+<li>Policy links (Privacy, Contact info, Refund policy)</li>
+</ul>
+<h3>Issues</h3>
+<ol>
+<li><strong>Duplicate footer policy links</strong> — both Ukrainian versions (Обміни та повернення) and English Shopify defaults (Privacy policy, Refund policy, Contact information) exist in the footer. This creates confusion.</li>
+<li><strong>Blog link says "Blog"</strong> in English while the rest of the footer is in Ukrainian</li>
+<li><strong>No breadcrumbs</strong> on any page — missed internal linking opportunity</li>
+<li><strong>No "recently viewed" or "related products"</strong> sections linking between products</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Remove duplicate English policy links</strong> from footer — keep only the Ukrainian versions</li>
+<li><strong>Rename "Blog" to "Блог"</strong> in footer navigation</li>
+<li><strong>Enable breadcrumbs</strong> — in Dawn theme, breadcrumbs can be enabled via theme settings or by editing the header section</li>
+<li>Add cross-linking sections (covered in Product Page section)</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Better internal linking distributes SEO authority across pages and helps Google understand site hierarchy. Breadcrumbs also appear in search results.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> SEO / UX</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-03">
+<h2><span class="sec-num">03.</span> Homepage</h2>
+<h2>Overview</h2>
+<p>The homepage is the brand's first impression. Currently, it is <strong>minimal to the point of being underbuilt</strong> — it relies almost entirely on a single hero image and a product grid, missing critical trust-building and conversion-driving sections.</p>
+<hr />
+<h2>Current Homepage Structure</h2>
+<p><strong>Theme editor sections:</strong></p>
+<ol>
+<li>Announcement bar (disabled)</li>
+<li>Header</li>
+<li>Image banner (hero)</li>
+<li>Featured collection</li>
+<li>Slideshow</li>
+<li>Slideshow</li>
+<li>Slideshow (disabled)</li>
+<li>Video (disabled)</li>
+<li>Footer (Apps, Section, Footer)</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Present?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Announcement bar</td>
+<td>Disabled</td>
+<td>Exists in theme but turned off — enable it</td>
+</tr>
+<tr>
+<td>Navigation bar</td>
+<td>Yes</td>
+<td>Home, New, Catalog dropdown, Country selector, Search, Cart</td>
+</tr>
+<tr>
+<td>Hero banner with CTA</td>
+<td>Yes</td>
+<td>Full-width image, "Переглянути новинки" button</td>
+</tr>
+<tr>
+<td>Featured collection</td>
+<td>Yes</td>
+<td>Product grid</td>
+</tr>
+<tr>
+<td>Slideshow sections</td>
+<td>Yes (x2 active)</td>
+<td>Content slideshows</td>
+</tr>
+<tr>
+<td>Video</td>
+<td>Disabled</td>
+<td>Exists but turned off</td>
+</tr>
+<tr>
+<td>Trust badges</td>
+<td>No</td>
+<td>No handmade, quality, shipping badges</td>
+</tr>
+<tr>
+<td>Brand story section</td>
+<td>No</td>
+<td>About page exists but not featured on home</td>
+</tr>
+<tr>
+<td>Social proof / Reviews</td>
+<td>No</td>
+<td>No testimonials or review snippets on homepage</td>
+</tr>
+<tr>
+<td>Instagram feed</td>
+<td>No</td>
+<td>Only Instagram icon in footer</td>
+</tr>
+<tr>
+<td>Value proposition</td>
+<td>No</td>
+<td>No "Why SHEVCHENKO" section</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key observation:</strong> The homepage has more sections than the headless crawl showed (slideshows, disabled video). But it still lacks trust-building and conversion-driving content sections.</p>
+<hr />
+<h2>3.1 Hero Banner &amp; Call-to-Action</h2>
+<h3>Current State</h3>
+<ul>
+<li>Full-width lifestyle photo of model (good visual quality)</li>
+<li>CTA button "Перейти до колекції" (Go to collection) — visible on mobile</li>
+<li>On desktop, the hero text/CTA appears to be overlaid on the image but may be difficult to read depending on scroll position</li>
+<li>No headline text on the hero (just the image + button)</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>A fashion brand hero should communicate 3 things in under 3 seconds:</p>
+<ol>
+<li><strong>What</strong> — what you sell (designer knitwear)</li>
+<li><strong>Why</strong> — what makes you different (handmade, lamb wool, limited editions)</li>
+<li><strong>Action</strong> — what to do next (shop the collection)</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Add a headline to the hero section:</strong> e.g., "Авторський трикотаж з вовни ягня" or "Лімітовані колекції для тих, хто цінує унікальність"</li>
+<li><strong>Add a subheading:</strong> "Ручна робота. Преміальні матеріали. Зроблено в Україні."</li>
+<li><strong>Make the CTA more specific:</strong> Instead of "Перейти до колекції" → "Дивитись колекцію SS 2026" or "Нова колекція" (creates specificity and urgency)</li>
+<li><strong>Ensure text contrast</strong> — white text on a light image is hard to read. Add a dark overlay gradient (50-70% opacity) behind text.</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul>
+<li>Rouje — campaign hero with headline + CTA: <a href="https://rouje.com/en" target="_blank">rouje.com/en</a></li>
+<li>Gymshark — full-screen video hero: <a href="https://www.gymshark.com" target="_blank">gymshark.com</a></li>
+<li>The Frankie Shop — editorial hero: <a href="https://thefrankieshop.com" target="_blank">thefrankieshop.com</a></li>
+</ul></div>
+
+<h3>Expected Impact</h3>
+<p>A clear hero with headline + USP + specific CTA typically increases click-through to collection pages by 25-40%.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / UX</p>
+<hr />
+<h2>3.2 Trust Badges &amp; Value Proposition</h2>
+<h3>Current State</h3>
+<p>There are <strong>zero trust signals</strong> on the homepage. No mention of:</p>
+<ul>
+<li>Handmade production</li>
+<li>Premium materials</li>
+<li>Free shipping / delivery terms</li>
+<li>Return policy</li>
+<li>Secure payments</li>
+<li>"Made in Ukraine"</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>A horizontal row of 3-5 trust badges (with icons) should appear above the fold or directly below the hero. Fashion brands at this price point need to justify the premium.</p>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Add a "trust bar" section</strong> below the hero. In Dawn theme editor:</li>
+<li>Add a "Multicolumn" section</li>
+<li>
+<p>Add 4 columns with icons:</p>
+<ul>
+<li>Ручна робота (Handmade) — with a craft/hand icon</li>
+<li>Вовна ягня преміум якості (Premium lamb wool) — with a material icon</li>
+<li>Безкоштовна доставка від ₴X (Free shipping from ₴X) — with a delivery icon</li>
+<li>Легке повернення 14 днів (Easy returns 14 days) — with a return icon</li>
+</ul>
+</li>
+<li>
+<p><strong>Alternative: Use Dawn's "Icon with text" section</strong> which is specifically designed for this purpose.</p>
+</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Trust badges below the hero have been shown to increase add-to-cart rate by 10-15% in fashion e-commerce. They answer the customer's immediate questions about quality and risk.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> Conversion / Trust</p>
+<hr />
+<h2>3.3 Collection Highlights</h2>
+<h3>Current State</h3>
+<p>The homepage shows a flat grid of featured products with no categorization or curation. There are no highlighted collections (e.g., "New Arrivals", "SS 2026", "Bestsellers").</p>
+<h3>Best Practice (2026)</h3>
+<p>Homepage should feature 2-3 curated collection sections with lifestyle imagery:</p>
+<ol>
+<li><strong>New Arrivals</strong> — the latest collection</li>
+<li><strong>Seasonal Collection</strong> — SS 2026 feature</li>
+<li><strong>Bestsellers</strong> or <strong>Editor's Picks</strong> — social proof through popularity</li>
+</ol>
+<p>Each section should have: collection image, title, brief description, and "Shop Now" CTA.</p>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Dawn theme editor</strong>, add "Collection list" or "Featured collection" sections:</li>
+<li><strong>Section 1:</strong> "Нова колекція SS 2026" with banner image + "Дивитись" button → links to /collections/spring-summer-2026</li>
+<li><strong>Section 2:</strong> "SHEVCHENKO x NEHA" collab highlight → links to /collections/shevchenko-x-neha</li>
+<li>
+<p><strong>Section 3:</strong> "Трикотаж з вовни ягня" (Knitwear) → links to a knitwear collection</p>
+</li>
+<li>
+<p>Use <strong>full-width lifestyle images</strong> for these sections, not product grid images.</p>
+</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Collection sections create visual hierarchy and guide users toward specific categories, reducing decision paralysis. This typically increases pages per session by 20-30%.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / UX</p>
+<hr />
+<h2>3.4 Brand Story Section</h2>
+<h3>Current State</h3>
+<p>The About page exists (<code>/pages/про-нас</code>) with brand story content — founded by sisters Olena and Svitlana Shevchenko in 2013, brand launched in 2016. But <strong>none of this appears on the homepage</strong>.</p>
+<h3>Best Practice (2026)</h3>
+<p>Premium fashion brands benefit hugely from homepage brand storytelling. A short "Our Story" section with:</p>
+<ul>
+<li>Founder photo or brand story image</li>
+<li>2-3 sentence brand narrative</li>
+<li>Link to full story</li>
+</ul>
+<p>This builds emotional connection and justifies the premium price point.</p>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Dawn theme editor</strong>, add a "Rich text" or "Image with text" section:</li>
+<li>Image: Founders or atelier photo</li>
+<li>Heading: "Наша історія" (Our Story)</li>
+<li>Text: "Бренд SHEVCHENKO народився на дитячому просторі двох сестер — Олени та Світлани Шевченко. З 2016 року ми створюємо авторський жіночий одяг з преміальних матеріалів, де кожна річ — це поєднання комфорту та елегантності."</li>
+<li>Button: "Дізнатися більше" → /pages/про-нас</li>
+</ol>
+
+<h3>Expected Impact</h3>
+<p>Brand storytelling increases time on site and emotional connection. For artisanal/handmade brands, this is often the #1 factor in converting first-time visitors.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / Trust</p>
+<hr />
+<h2>3.5 Social Proof Section</h2>
+<h3>Current State</h3>
+<p>No customer reviews, testimonials, press mentions, or user-generated content appears anywhere on the homepage.</p>
+<h3>Best Practice (2026)</h3>
+<p>Fashion brands should showcase at minimum:</p>
+<ol>
+<li><strong>Customer reviews/testimonials</strong> — quotes with photos</li>
+<li><strong>Press mentions</strong> — "As seen in..." logos</li>
+<li><strong>Instagram feed</strong> — real customer photos wearing the brand</li>
+<li><strong>Numbers</strong> — "1000+ задоволених клієнтів" if applicable</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Add a testimonials section</strong> — In Dawn, use "Rich text" or install a testimonial section. Even 3-4 hand-picked customer quotes with first names work.</li>
+<li><strong>Add Instagram feed</strong> — Install the free Shopify app "Instafeed" to display your Instagram grid on the homepage. This provides social proof + fresh content automatically.</li>
+<li><strong>Add a "press" or "as seen in" bar</strong> if you have any press coverage or media mentions.</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Social proof on homepage can increase conversion by 15-20%. Instagram feeds specifically keep content fresh and show real-world product usage.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / Trust</p>
+<hr />
+
+<h2>3.6 Enable Disabled Sections</h2>
+<h3>Current State</h3>
+<p>Two homepage sections are <strong>built but disabled</strong>:</p>
+<ol>
+<li><strong>Announcement bar</strong> — ready to use, just needs to be turned on</li>
+<li><strong>Video section</strong> — exists but turned off</li>
+<li><strong>Third Slideshow</strong> — disabled</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Enable the Announcement bar immediately</strong> — this is free real estate for:</li>
+<li>Free shipping threshold: "Безкоштовна доставка від ₴X"</li>
+<li>New collection promo: "Нова колекція SS 2026 вже доступна"</li>
+<li>
+<p>Rotate messages if Dawn supports it</p>
+</li>
+<li>
+<p><strong>Enable the Video section</strong> — if you have brand/product video content, this is a strong engagement driver. Consider adding a short brand story video or collection preview.</p>
+</li>
+<li>
+<p><strong>Review the disabled Slideshow</strong> — is it disabled because it's outdated? Update the content and re-enable, or remove if redundant.</p>
+</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul><li>Rouje — "Free delivery from €99": <a href="https://rouje.com/en" target="_blank">rouje.com/en</a></li>
+<li>Nanushka — editorial announcement: <a href="https://nanushka.com" target="_blank">nanushka.com</a></li></ul></div>
+
+<p><span class="priority priority-critical">Critical</span> (announcement bar), Medium (video, slideshow)
+<strong>Impact Area:</strong> Conversion / UX</p>
+<hr />
+<h2>3.7 Homepage Content Strategy</h2>
+<h3>Current State</h3>
+<p>The homepage has: hero banner → featured collection → 2 slideshows → footer. This is more content than initially detected, but still <strong>missing key trust-building sections</strong>.</p>
+<h3>Best Practice (2026)</h3>
+<p>Homepage should have 6-8 distinct sections that tell a story from top to bottom.</p>
+<h3>Recommended Homepage Order</h3>
+<ol>
+<li><strong>Announcement bar</strong> (enable existing)</li>
+<li>Hero banner (existing — improve CTA text)</li>
+<li><strong>Trust badges</strong> (new — add "Icon with text" section)</li>
+<li>Featured collection (existing)</li>
+<li>Slideshow (existing)</li>
+<li><strong>Brand story</strong> (new — "Image with text" section)</li>
+<li>Slideshow (existing)</li>
+<li><strong>Social proof / Reviews</strong> (new — testimonials or Instagram feed)</li>
+<li>Video (enable existing)</li>
+<li>Footer (improve)</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Adding trust badges, brand story, and enabling the announcement bar can increase homepage engagement by 25-40%.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / UX / Trust</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-04">
+<h2><span class="sec-num">04.</span> Collection Pages</h2>
+<h2>Overview</h2>
+<p>Collection pages are where browsing happens. The current collection pages are basic Dawn defaults — a product grid with minimal navigation aids.</p>
+<hr />
+<h2>Current Collection Page Structure</h2>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Present?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Collection title</td>
+<td>Yes</td>
+<td>"Новинки" with breadcrumb "Головна"</td>
+</tr>
+<tr>
+<td>Product grid</td>
+<td>Yes</td>
+<td>4 columns desktop, 2 columns mobile</td>
+</tr>
+<tr>
+<td>Product cards with image</td>
+<td>Yes</td>
+<td>Good quality lifestyle photos</td>
+</tr>
+<tr>
+<td>Product name</td>
+<td>Yes</td>
+<td>Ukrainian</td>
+</tr>
+<tr>
+<td>Price on card</td>
+<td>Yes</td>
+<td>UAH format</td>
+</tr>
+<tr>
+<td>Filters</td>
+<td>No</td>
+<td>No filtering by size, color, price, material</td>
+</tr>
+<tr>
+<td>Sorting</td>
+<td>No</td>
+<td>No sort options visible</td>
+</tr>
+<tr>
+<td>Collection description</td>
+<td>No</td>
+<td>No descriptive text</td>
+</tr>
+<tr>
+<td>Collection banner/image</td>
+<td>No</td>
+<td>Just title + grid</td>
+</tr>
+<tr>
+<td>Product count</td>
+<td>No</td>
+<td>Users don't know how many items exist</td>
+</tr>
+<tr>
+<td>Quick add to cart</td>
+<td>No</td>
+<td>Must click through to product page</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>4.1 Collection Filters</h2>
+<h3>Current State</h3>
+<p>There are <strong>no filters</strong> on collection pages. Customers cannot filter by:</p>
+<ul>
+<li>Size (XS/S, M/L, etc.)</li>
+<li>Color</li>
+<li>Price range</li>
+<li>Material</li>
+<li>Product type</li>
+</ul>
+<p>For a brand with multiple categories (dresses, tops, bottoms, outerwear, shoes, accessories), the absence of filters forces customers to scroll through everything manually.</p>
+<h3>Best Practice (2026)</h3>
+<p>Fashion collection pages should offer:</p>
+<ol>
+<li><strong>Size filter</strong> — most important for fashion</li>
+<li><strong>Color filter</strong> — with color swatches (visual, not text)</li>
+<li><strong>Price filter</strong> — range slider or brackets</li>
+<li><strong>Sort options</strong> — by price (low/high), newest, bestselling</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Enable Dawn's built-in filtering</strong> — Dawn 15.2.0 supports Shopify's native "Storefront Filtering":</li>
+<li>Go to Shopify Admin → Online Store → Navigation → Collection and search filters</li>
+<li>Enable filters for: Size, Color, Price, Product type</li>
+<li>
+<p>Dawn will automatically display these as sidebar or dropdown filters</p>
+</li>
+<li>
+<p><strong>Configure product tags/options consistently</strong> across all products:</p>
+</li>
+<li>Every product must have "Size" option (XS, S, M, L, XL, XXL)</li>
+<li>Every product must have "Color" option</li>
+<li>
+<p>Tags should include material type</p>
+</li>
+<li>
+<p><strong>Enable sorting</strong> — in Dawn theme editor, the collection template should have a "Sort by" option. Enable it.</p>
+</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul><li>SKIMS — filter sidebar: <a href="https://skims.com/collections/skims" target="_blank">skims.com/collections/skims</a></li>
+<li>Nanushka — sidebar filters: <a href="https://nanushka.com/collections/women-dresses" target="_blank">nanushka.com/collections/women-dresses</a></li></ul></div>
+
+<h3>Expected Impact</h3>
+<p>Filters reduce time-to-find-product by 60-70%. Sites with proper filtering see 20-30% higher conversion on collection pages. This is especially critical for mobile users (who scroll less).</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> Conversion / UX</p>
+<hr />
+<h2>4.2 Collection Banner &amp; Description</h2>
+<h3>Current State</h3>
+<p>Collection pages show only the title and a product grid. No collection-specific imagery, description, or storytelling.</p>
+<h3>Best Practice (2026)</h3>
+<p>Each collection should have:</p>
+<ol>
+<li><strong>Banner image</strong> — lifestyle photo representing the collection mood</li>
+<li><strong>Description</strong> — 2-3 sentences describing the collection, materials, and inspiration (also valuable for SEO)</li>
+<li><strong>Product count</strong> — "12 товарів" (12 products)</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Shopify Admin → Products → Collections</strong>, add:</li>
+<li><strong>Image</strong> for each collection (lifestyle photo, not a product photo)</li>
+<li>
+<p><strong>Description</strong> with relevant keywords, e.g., for "Сукні": "Авторські сукні SHEVCHENKO з натуральних тканин — шифон, віскоза, вовна ягня. Кожна модель — унікальне поєднання елегантності та комфорту."</p>
+</li>
+<li>
+<p><strong>In Dawn theme editor</strong>, ensure the collection template displays the collection image as a banner above the product grid.</p>
+</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Collection descriptions help Google understand and rank collection pages for category keywords. Banner images create stronger brand impression and keep users engaged.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> SEO / UX</p>
+<hr />
+<h2>4.3 Product Cards</h2>
+<h3>Current State</h3>
+<p>Product cards show:</p>
+<ul>
+<li>✓ Product image (lifestyle photo)</li>
+<li>✓ Product name</li>
+<li>✓ Price</li>
+<li>✗ No color/size availability indicator</li>
+<li>✗ No quick-add button</li>
+<li>✗ No sale badge or "New" badge</li>
+<li>✗ No review rating</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Fashion product cards should include:</p>
+<ol>
+<li><strong>Available colors</strong> — small color swatches below the image</li>
+<li><strong>Quick Add to Cart</strong> — allows adding to cart without visiting the product page</li>
+<li><strong>Badges</strong> — "Нове" (New), "Хіт продажів" (Bestseller), "-20%" (Sale)</li>
+<li><strong>Star rating</strong> (once reviews are implemented)</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul><li>Alo Yoga — hover swap + swatches: <a href="https://www.aloyoga.com/collections/women" target="_blank">aloyoga.com</a></li>
+<li>The Frankie Shop — hover effect: <a href="https://thefrankieshop.com/collections/new-arrivals" target="_blank">thefrankieshop.com</a></li></ul></div>
+
+<h3>Action Steps</h3>
+<ol>
+<li>~~Enable secondary image on hover~~ — <span class="priority priority-low">DONE</span> Already enabled.</li>
+<li><strong>Add color swatches to product cards</strong> — this requires a Shopify app or Dawn code customization. Apps: "Variant Image Swatch" or "CSA Color Swatch"</li>
+<li><strong>Add product badges</strong> — use Shopify tags or metafields:</li>
+<li>Tag "new" → shows "Нове" badge</li>
+<li>Compare-at price → shows discount percentage</li>
+<li>Tag "bestseller" → shows "Хіт" badge</li>
+<li><strong>Enable quick add</strong> — Dawn has a "Quick add button" option in collection settings</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Image hover reduces the need to click through to product pages (faster browsing). Quick add removes friction from the purchase path. Together, these typically increase add-to-cart rate by 15-25%.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / UX</p>
+<hr />
+<h2>4.4 Collection Navigation &amp; Categories</h2>
+<h3>Current State</h3>
+<p>The site has these collections:</p>
+<ul>
+<li>Новинки (New arrivals)</li>
+<li>SS 2026</li>
+<li>SHEVCHENKO x NEHA (collaboration)</li>
+<li>Сукні (Dresses)</li>
+<li>Низи (Bottoms)</li>
+<li>Верхи (Tops)</li>
+<li>Взуття (Shoes)</li>
+<li>Верхній одяг (Outerwear)</li>
+<li>Аксессуари (Accessories)</li>
+<li>Подарункові сертифікати (Gift certificates)</li>
+<li>Знижки (Sale)</li>
+</ul>
+<p>There is also a "Комплекти" (Sets) page — but it's under /pages/ not /collections/, which means it's a static page rather than a dynamic product collection.</p>
+<h3>Issues</h3>
+<ol>
+<li><strong>"Комплекти" should be a collection</strong>, not a page — so products are dynamically listed and filterable</li>
+<li><strong>No "All Products" link</strong> visible in navigation (though /collections/all exists)</li>
+<li><strong>No sub-categories</strong> within collections</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Convert "Комплекти" from a page to a collection</strong> in Shopify Admin</li>
+<li><strong>Create a "Все товари" (All Products) link</strong> in the main navigation as a fallback for users who want to browse everything</li>
+<li><strong>Consider sub-collections</strong> using tags: e.g., within "Сукні" → filter by "Повсякденні" (Everyday), "Святкові" (Formal)</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Proper collection structure improves both navigation UX and SEO (collection pages rank well for category keywords).</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> SEO / UX</p>
+<hr />
+<h2>4.5 Mobile Collection Experience</h2>
+<h3>Current State</h3>
+<p>On mobile, the collection shows a 2-column grid with product image, name, and price. There are no filters, no sorting, and no sticky filter bar.</p>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul><li>Gymshark — sticky add-to-cart on mobile: <a href="https://www.gymshark.com" target="_blank">gymshark.com</a></li>
+<li>SKIMS — sticky buy bar: <a href="https://skims.com" target="_blank">skims.com</a></li></ul></div>
+
+<h3>Best Practice (2026)</h3>
+<p>Mobile collection pages should have:</p>
+<ol>
+<li><strong>Sticky filter/sort bar</strong> at the top — always accessible while scrolling</li>
+<li><strong>Filter drawer</strong> — opens from bottom of screen (standard mobile UX pattern)</li>
+<li><strong>"Back to top" button</strong> — for long collection pages</li>
+<li><strong>Infinite scroll or "Load more" button</strong> instead of pagination</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li>Once filters are enabled (4.1), verify they work well on mobile — Dawn's filter should automatically use a drawer/modal on mobile</li>
+<li><strong>Add infinite scroll</strong> — Dawn supports "Load more" button by default. Verify this is enabled in theme settings.</li>
+<li><strong>Ensure product cards are large enough</strong> — minimum 44px tap targets for all interactive elements</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Mobile users are ~84% of Shevchenko's traffic (based on similar Ukrainian brands). Optimizing the mobile collection experience has outsized impact on overall conversion.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / UX</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-05">
+<h2><span class="sec-num">05.</span> Product Pages</h2>
+<h2>Overview</h2>
+<p>Product pages are where buying decisions happen. The current product page has a solid foundation (good photos, basic info) but is missing critical conversion elements.</p>
+<hr />
+<h2>Current Product Page Structure</h2>
+<p><strong>Product analyzed:</strong> Блуза з віскози, бежевий (₴7,980.00 UAH)</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Present?</th>
+<th>Quality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product images</td>
+<td>Yes (8 photos)</td>
+<td>Good quantity, lifestyle shots</td>
+</tr>
+<tr>
+<td>Product title (H1)</td>
+<td>Yes</td>
+<td>Ukrainian, descriptive</td>
+</tr>
+<tr>
+<td>Price</td>
+<td>Yes</td>
+<td>₴7,980.00 UAH</td>
+</tr>
+<tr>
+<td>Color swatches</td>
+<td>No</td>
+<td>Products exist in 2-3 colors but no swatch to switch between them</td>
+</tr>
+<tr>
+<td>Size selector</td>
+<td>Yes</td>
+<td>XS/S, M/L options</td>
+</tr>
+<tr>
+<td>Size guide link</td>
+<td>Yes</td>
+<td>Present on product page</td>
+</tr>
+<tr>
+<td>Add to Cart button</td>
+<td>Yes</td>
+<td>"Додати в корзину"</td>
+</tr>
+<tr>
+<td>Buy It Now button</td>
+<td>Yes</td>
+<td>Present</td>
+</tr>
+<tr>
+<td>Product description</td>
+<td>Yes</td>
+<td>363 characters</td>
+</tr>
+<tr>
+<td>Material/care info</td>
+<td>Partial</td>
+<td>In accordions</td>
+</tr>
+<tr>
+<td>Trust badges</td>
+<td>No</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Reviews/ratings</td>
+<td>Yes</td>
+<td>Klaviyo Reviews app installed</td>
+</tr>
+<tr>
+<td>Breadcrumbs</td>
+<td>No</td>
+<td>Missing</td>
+</tr>
+<tr>
+<td>Cross-sell / Related</td>
+<td>Partial</td>
+<td>1 section detected</td>
+</tr>
+<tr>
+<td>Share buttons</td>
+<td>Yes</td>
+<td>Present</td>
+</tr>
+<tr>
+<td>Sticky Add-to-Cart</td>
+<td>Detected</td>
+<td>On scroll</td>
+</tr>
+<tr>
+<td>"Made to order" notice</td>
+<td>Yes</td>
+<td>"Під замовлення" visible on mobile</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>5.1 Size Guide Integration</h2>
+<h3>Current State</h3>
+<p>A size chart exists on the product page and a dedicated size chart page at <code>/pages/розмірна-сітка</code> with a clean table (XS through XLL, bust/waist/hips in cm). This is good — the size guide is accessible without leaving the product page.</p>
+<h3>Optimization Recommendations</h3>
+<p>The size guide is present, but can be enhanced:</p>
+<ol>
+<li><strong>Add product-specific sizing notes</strong> in the description, e.g., "Модель на фото: зріст 175 см, параметри 84/64/90, розмір XS/S" — this helps customers map the size chart to a real body</li>
+<li><strong>Consider a size recommender tool</strong> — apps like <strong>Kiwi Size Chart &amp; Recommender</strong> (free plan) let customers enter their measurements and get a recommended size. This goes beyond a chart and actively reduces size uncertainty.</li>
+<li><strong>Ensure the size chart is product-specific</strong> — different product categories (knitwear vs. dresses vs. outerwear) may have different fit. If one chart fits all, note that. If not, create category-specific charts.</li>
+</ol>
+
+
+<h3>Expected Impact</h3>
+<p>Adding model measurements to descriptions reduces size-related returns by 10-15%. A size recommender tool can further reduce returns and increase add-to-cart confidence.</p>
+<p><span class="priority priority-medium">Medium</span> (existing feature — optimize, don't rebuild)
+<strong>Impact Area:</strong> Conversion</p>
+<hr />
+<h2>5.2 Color Swatches — Missing Color Switching</h2>
+<h3>Current State</h3>
+<p>Products come in <strong>2-3 color options</strong>, but on the product page <strong>there is no color swatch or link to switch to other colors</strong>. Each color is listed as a separate product with its own URL.</p>
+<p>This means:</p>
+<ul>
+<li>A customer on the beige blouse page has no idea a blue or grey version exists</li>
+<li>They must go back to the collection and manually find the other color</li>
+<li>If they arrived from Google/Instagram directly to one color, they'll never see the alternatives</li>
+</ul>
+<p>This is especially problematic because the data shows <strong>sets are the top sellers</strong> — customers who buy one color may want to see all available colors.</p>
+<h3>Best Practice (2026)</h3>
+<p>Every product with multiple colors should display:</p>
+<ol>
+<li><strong>Visual color swatches</strong> below the product title — clickable circles showing each available color</li>
+<li>Clicking a swatch loads that color's images/product without leaving the page</li>
+<li>The current color is highlighted/selected</li>
+</ol>
+<h3>Action Steps</h3>
+<p><strong>Option A: Combine colors into one product with variants (Recommended)</strong></p>
+<ol>
+<li>In Shopify Admin → Products, merge color variants into a single product listing with a "Color" option</li>
+<li>Upload images for each color variant</li>
+<li>Dawn automatically displays color swatches when a product has a "Color" option</li>
+<li>This also consolidates reviews — one product with 10 reviews instead of 3 products with 3 reviews each</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul>
+<li>Alo Yoga — color swatch circles: <a href="https://www.aloyoga.com/collections/women" target="_blank">aloyoga.com</a> (click any multi-color product)</li>
+<li>SKIMS — swatches + model in selected color: <a href="https://skims.com" target="_blank">skims.com</a> (click any product)</li>
+<li>Nanushka — color dots on cards: <a href="https://nanushka.com/collections/women-dresses" target="_blank">nanushka.com/collections/women-dresses</a></li>
+</ul></div>
+
+<p><strong>Option B: Keep separate products but link them visually</strong>
+If you prefer separate product listings per color (e.g., for inventory or SEO reasons):</p>
+<ol>
+<li>Use <strong>Shopify metafields</strong> to create a "Color group" linking related products</li>
+<li>Install a color swatch app that displays links to sibling products:</li>
+<li><strong>CSA Color Swatch</strong> — shows visual swatches linking to related products</li>
+<li>Dawn's built-in "Complementary products" section can also work</li>
+<li>In product metafields, reference the other color variants</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Color swatches are one of the highest-impact product page features for fashion. Brands that add color switching see:</p>
+<ul>
+<li><strong>Add-to-cart rate increase of 15-25%</strong> — customers find the color they want without leaving</li>
+<li><strong>Fewer bounces</strong> — visitors don't leave because they only saw one color they didn't like</li>
+<li><strong>Higher review density</strong> — consolidated products accumulate reviews faster</li>
+</ul>
+<p>With the current 1.66% add-to-cart rate, this alone could move it toward 2-2.5%.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> Conversion</p>
+<hr />
+<h2>5.3 Product Reviews &amp; Ratings</h2>
+<h3>Current State</h3>
+<p><strong>Klaviyo Reviews is installed</strong> — the review infrastructure exists. The key question is whether reviews are actively being collected and displayed prominently.</p>
+<h3>Optimization Recommendations</h3>
+<ol>
+<li><strong>Verify review display</strong> — ensure star rating + review count is visible near the product title/price (above the fold), not just at the bottom of the page</li>
+<li><strong>Encourage photo reviews</strong> — photo reviews are the strongest conversion driver for fashion. Offer an incentive: "Залиште відгук з фото та отримайте 10% знижку на наступне замовлення"</li>
+<li><strong>Seed initial reviews</strong> if products have few/no reviews yet:</li>
+<li>Contact past customers personally</li>
+<li>Import any positive feedback from Instagram DMs</li>
+<li><strong>Display aggregate rating on collection page product cards</strong> — if Klaviyo Reviews supports this, showing star ratings on product cards increases click-through</li>
+</ol>
+<h3>Best Practice (2026)</h3>
+<ul>
+<li>Target: 5+ reviews per product (270% higher conversion vs. 0 reviews)</li>
+<li>Photo reviews are 3x more effective than text-only for fashion</li>
+<li>Star ratings should be visible in two places: product page header AND collection page product cards</li>
+</ul>
+<h3>Expected Impact</h3>
+<p>If reviews are being collected but not prominently displayed, fixing visibility alone can increase conversion by 10-15%.</p>
+<p><span class="priority priority-high">High</span> (optimize existing setup)
+<strong>Impact Area:</strong> Conversion / Trust</p>
+<hr />
+<h2>5.4 Product Description &amp; Information Depth</h2>
+<h3>Current State</h3>
+<p>The product description is 363 characters — reasonably informative but could be stronger:</p>
+<div class="example-box"><strong>Live Examples:</strong>
+<p>"Елегантна блуза з м'яким шовковистим блиском створює витончений і жіночний образ. Вільний крій красиво лягає по фігурі, а об'ємні рукави додають легкості та характеру. Шарф-бант знімається, тому блузу можна носити по-різному — як класичний лаконічний варіант або з романтичним акцентом. Ідеально поє..."</p>
+</div>
+<h3>Best Practice (2026)</h3>
+<p>A premium fashion product page should include:</p>
+<ol>
+<li><strong>Emotional opening</strong> — how it feels, the experience of wearing it</li>
+<li><strong>Key features</strong> — bullet points (material, fit, closure, details)</li>
+<li><strong>Material &amp; composition</strong> — exact percentages (e.g., "100% вовна ягня")</li>
+<li><strong>Care instructions</strong> — washing, storing</li>
+<li><strong>Fit information</strong> — model measurements, recommended sizing</li>
+<li><strong>Styling tips</strong> — how to wear it, what to pair it with</li>
+<li><strong>Shipping &amp; returns</strong> — delivery time, return policy summary</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Expand each product description</strong> to include all 7 elements above</li>
+<li><strong>Use bullet points</strong> for key features (easier to scan than paragraphs)</li>
+<li><strong>Add model measurements</strong> to every product: "Модель: зріст 175 см, параметри 84/64/90, одягнений розмір XS/S"</li>
+<li><strong>Add "Склад" (Composition)</strong> as a visible detail, not hidden in accordion</li>
+<li><strong>Include styling suggestion:</strong> "Чудово поєднується зі спідницею з віскози" with a link to the complementary product</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Detailed product information reduces purchase anxiety and returns. Fashion products with complete descriptions convert 15-20% better than minimal ones.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion</p>
+<hr />
+<h2>5.5 Trust Badges on Product Page</h2>
+<h3>Current State</h3>
+<p>There are <strong>zero trust badges</strong> on the product page. No mention of:</p>
+<ul>
+<li>Free shipping / delivery terms</li>
+<li>Return policy</li>
+<li>Secure payment</li>
+<li>Handmade quality</li>
+<li>Material authenticity</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Below the Add to Cart button, add 3-4 trust badges with icons:</p>
+<ul>
+<li>Безкоштовна доставка по Україні (Free delivery across Ukraine)</li>
+<li>Повернення протягом 14 днів (14-day returns)</li>
+<li>Безпечна оплата (Secure payment)</li>
+<li>Ручна робота (Handmade)</li>
+</ul>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul>
+<li>Alo Yoga — trust badges below Add to Cart: <a href="https://www.aloyoga.com/collections/women" target="_blank">aloyoga.com</a> (click any product)</li>
+<li>SKIMS — shipping/returns info below buy button: <a href="https://skims.com" target="_blank">skims.com</a> (click any product)</li>
+</ul></div>
+
+<h3>Action Steps</h3>
+<ol>
+<li><strong>In Dawn theme editor</strong>, add an "Icon with text" or "Collapsible content" section below the Add to Cart button in the product template</li>
+<li><strong>Alternative:</strong> Add trust badges directly in the product description template using Liquid metafields</li>
+<li><strong>Include payment method icons</strong> (Visa, Mastercard, Monobank) — these are visible on the cart page but should also appear on product pages</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Trust badges adjacent to the buy button reduce purchase hesitation. Showing shipping/return info on the product page (rather than making customers search for it) increases add-to-cart by 10-20%.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / Trust</p>
+<hr />
+<h2>5.6 Cross-Sell &amp; "Complete the Look"</h2>
+<h3>Current State</h3>
+<p>One cross-sell/recommendation section was detected, but the implementation appears minimal. There is no visible "Complete the Look" or "Ви також можете полюбити" section in the screenshots.</p>
+<h3>Best Practice (2026)</h3>
+<p>Fashion product pages should have 2-3 recommendation sections:</p>
+<ol>
+<li><strong>"Доповніть образ" (Complete the Look)</strong> — manually curated outfits pairing this item with complementary products (e.g., blouse + skirt + accessories)</li>
+<li><strong>"Вам також може сподобатись" (You May Also Like)</strong> — algorithmically similar products</li>
+<li><strong>"Нещодавно переглянуті" (Recently Viewed)</strong> — products the customer looked at before</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul><li>SKIMS — "Complete the Look" on every product: <a href="https://skims.com" target="_blank">skims.com</a> (click any product, scroll down)</li>
+<li>Rouje — "Wear it with" outfits: <a href="https://rouje.com/en/collections/robes" target="_blank">rouje.com/en</a> (click any dress)</li>
+<li>Nanushka — "Style with": <a href="https://nanushka.com/collections/women-dresses" target="_blank">nanushka.com</a></li></ul></div>
+
+<h3>Action Steps</h3>
+<ol>
+<li><strong>"Complete the Look" section</strong> — use Shopify metafields to manually assign complementary products:</li>
+<li>In Shopify Admin → Settings → Custom data → Products, create a metafield "Complementary products" (list of product references)</li>
+<li>
+<p>In Dawn theme, add a "Complementary products" section to the product template</p>
+</li>
+<li>
+<p><strong>"You May Also Like"</strong> — Dawn's default product recommendations are based on Shopify's AI. Ensure the "Product recommendations" section is enabled in the product template.</p>
+</li>
+<li>
+<p><strong>"Recently Viewed"</strong> — Install a free app like "Recently Viewed Products" or add the Dawn built-in recently viewed section.</p>
+</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Cross-sell sections increase average order value by 10-30%. "Complete the Look" is especially powerful for fashion — customers often buy full outfits when shown styled combinations.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / Revenue</p>
+<hr />
+<h2>5.7 Breadcrumb Navigation</h2>
+<h3>Current State</h3>
+<p>Product pages have <strong>no breadcrumbs</strong>. A customer on the blouse product page has no visual path showing: Home → Collection → Product.</p>
+<h3>Best Practice (2026)</h3>
+<p>Breadcrumbs serve dual purposes:</p>
+<ol>
+<li><strong>UX</strong> — helps users navigate back to collections without using browser back button</li>
+<li><strong>SEO</strong> — provides BreadcrumbList schema markup for search results</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Enable breadcrumbs in Dawn</strong> — Dawn 15.2.0 may have a breadcrumb setting in theme editor. Check Theme Settings → Layout.</li>
+<li><strong>If not available</strong>, add breadcrumb code to the product template:</li>
+<li>Many free Dawn breadcrumb snippets are available on Shopify community forums</li>
+<li>Alternatively, install "Breadcrumbs" app from Shopify App Store</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul>
+<li>The Frankie Shop — WOMEN / DRESSES / MID &amp; LONG: <a href="https://thefrankieshop.com/collections/dresses" target="_blank">thefrankieshop.com</a> (click any product)</li>
+</ul></div>
+
+<h3>Expected Impact</h3>
+<p>Breadcrumbs reduce bounce rate by providing clear navigation paths. The BreadcrumbList schema also improves search result appearance.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> SEO / UX</p>
+<hr />
+<h2>5.8 Product Photo Gallery Layout</h2>
+<h3>Current State</h3>
+<p>Dawn's default product gallery uses a stacked vertical layout with thumbnail navigation. For a premium fashion brand, this layout feels basic and doesn't showcase the clothing effectively. The gallery lacks:</p>
+<ul>
+<li>Full-width image viewing</li>
+<li>Smooth transitions between images</li>
+<li>Zoom on hover</li>
+<li>Video support in the gallery</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Modern fashion product pages use one of these gallery layouts:</p>
+<ol>
+<li><strong>Sticky left gallery + scrollable info</strong> — large image on left stays in view while product details scroll on the right (used by Nanushka, SKIMS)</li>
+<li><strong>Full-width carousel with thumbnails</strong> — large horizontal slider with small thumbnail strip below (used by Alo Yoga)</li>
+<li><strong>Two-column grid</strong> — images displayed in a 2-column masonry grid without thumbnails (used by The Frankie Shop)</li>
+</ol>
+<p>All should include:</p>
+<ul>
+<li>Zoom on hover/click (customers want to see fabric texture)</li>
+<li>Video as first or second media item</li>
+<li>Swipe gestures on mobile</li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Change Dawn's gallery layout</strong> — in theme editor → Product page → Media, look for gallery layout options. Dawn 15.2.0 supports "Stacked", "Thumbnail", and "Thumbnail slider" layouts.</li>
+<li><strong>For a premium gallery</strong>, customize the product template code:</li>
+<li>Add CSS for sticky positioning of the gallery on desktop (<code>position: sticky; top: 100px</code>)</li>
+<li>Enable zoom on hover via Dawn's built-in image zoom feature</li>
+<li>Ensure images display at maximum resolution</li>
+<li><strong>Add product videos</strong> — upload short clips (10-15 seconds showing garment in motion) as product media. Even iPhone-shot video adds tremendous value.</li>
+<li><strong>Mobile gallery</strong> — ensure swipe works smoothly, and consider a full-screen gallery on tap</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul>
+<li>Nanushka — sticky gallery with large images: [nanushka.com](https://nanushka.com/collections/women-dresses) (click any product)</li>
+<li>Alo Yoga — full-width carousel with video: [aloyoga.com](https://www.aloyoga.com/collections/women) (click any product)</li>
+<li>SKIMS — clean gallery with model diversity: [skims.com](https://skims.com) (click any product)</li>
+<li>The Frankie Shop — two-column grid layout: [thefrankieshop.com](https://thefrankieshop.com/collections/dresses) (click any product)</li>
+</ul></div>
+
+<h3>Expected Impact</h3>
+<p>A premium gallery increases time spent on product page and reduces purchase anxiety. Fashion brands that upgrade from default galleries see 10-20% increase in add-to-cart rate. Product video specifically increases conversion by 15-30%.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / UX</p>
+<hr />
+<h2>5.9 Product Photography</h2>
+<h3>Current State</h3>
+<p>The product has <strong>8 photos</strong> — this is a good quantity. The images appear to be lifestyle/on-model shots taken in urban settings.</p>
+<h3>Best Practice (2026)</h3>
+<p>A fashion product page should have 5-8 photos covering:</p>
+<table>
+<thead>
+<tr>
+<th>Photo Type</th>
+<th>Purpose</th>
+<th>Present?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Front view on model</td>
+<td>Primary product view</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Back view</td>
+<td>Shows full design</td>
+<td>Partially</td>
+</tr>
+<tr>
+<td>Detail/close-up</td>
+<td>Fabric texture, stitching</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Side view</td>
+<td>Fit and silhouette</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Lifestyle/context</td>
+<td>Brand aesthetic, styling</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Flat lay</td>
+<td>Clean product view without model</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Scale/size reference</td>
+<td>How it fits different body types</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Ensure every product has at minimum:</strong> front, back, detail close-up, and one lifestyle shot</li>
+<li><strong>Add a fabric detail close-up</strong> to every product — this is critical for justifying premium pricing</li>
+<li><strong>Add "on different body types" shots</strong> when possible — this reduces size-related returns</li>
+<li><strong>Use consistent image ratios</strong> across all products (currently appears consistent — good)</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Comprehensive product photography is the #1 conversion factor in fashion e-commerce. Each additional quality photo increases conversion by ~2%.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> Conversion</p>
+<hr />
+<h2>5.9 "Made to Order" / Stock Status</h2>
+<h3>Current State</h3>
+<p>On mobile, "Під замовлення" (Made to order) is visible near the size selector. This is an important detail — customers should understand delivery expectations for made-to-order items.</p>
+<h3>Best Practice (2026)</h3>
+<p>Made-to-order information should clearly communicate:</p>
+<ol>
+<li><strong>What it means</strong> — "Цей виріб створюється спеціально для вас" (This item is made specially for you)</li>
+<li><strong>Timeline</strong> — "Виготовлення: 7-14 робочих днів" (Production: 7-14 business days)</li>
+<li><strong>Benefit</strong> — frame it positively: "Ексклюзивність" (Exclusivity), "Ідеальна посадка" (Perfect fit)</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Expand the "Під замовлення" notice</strong> with production timeline and positive framing</li>
+<li><strong>Add a delivery timeline estimator</strong> near the Add to Cart button showing expected delivery date</li>
+<li><strong>For in-stock items</strong>, show stock status: "В наявності" or "Залишилось мало" (Low stock) to create urgency</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Clear production/delivery timelines reduce customer anxiety and cart abandonment. Urgency signals ("Low stock") can increase conversion by 5-10%.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> Conversion</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-06">
+<h2><span class="sec-num">06.</span> Cart & Checkout</h2>
+<h2>Overview</h2>
+<p>The cart page is the last step before checkout — any friction here directly causes abandoned orders.</p>
+<hr />
+<h2>Current Cart Page Structure</h2>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Present?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cart items display</td>
+<td>Yes</td>
+<td>Standard Dawn layout</td>
+</tr>
+<tr>
+<td>Quantity selector</td>
+<td>Yes</td>
+<td>Standard</td>
+</tr>
+<tr>
+<td>Remove item</td>
+<td>Yes</td>
+<td>Standard</td>
+</tr>
+<tr>
+<td>Monobank installment badge</td>
+<td>Yes</td>
+<td>"Покупка частинами від monobank"</td>
+</tr>
+<tr>
+<td>Cart subtotal</td>
+<td>Yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Checkout button</td>
+<td>Yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Cross-sell / Upsell</td>
+<td>No</td>
+<td>No recommendations in cart</td>
+</tr>
+<tr>
+<td>Free shipping bar</td>
+<td>No</td>
+<td>No progress indicator</td>
+</tr>
+<tr>
+<td>Trust badges</td>
+<td>No</td>
+<td></td>
+</tr>
+<tr>
+<td>Discount code field</td>
+<td>Unknown</td>
+<td>Not visible on empty cart</td>
+</tr>
+<tr>
+<td>Cart note</td>
+<td>No</td>
+<td></td>
+</tr>
+<tr>
+<td>Estimated delivery</td>
+<td>No</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Positive:</strong> Monobank installment payment integration is a strong trust signal for Ukrainian customers.</p>
+<hr />
+<h2>6.1 Free Shipping Progress Bar</h2>
+<h3>Current State</h3>
+<p>There is no indication of free shipping threshold or progress toward it. Customers don't know if free shipping is available or how much more they need to spend to qualify.</p>
+<h3>Best Practice (2026)</h3>
+<p>A dynamic "free shipping bar" at the top of the cart:</p>
+<ul>
+<li>"До безкоштовної доставки залишилось ₴X" (₴X away from free shipping)</li>
+<li>Progress bar fills as items are added</li>
+<li>When threshold is met: "Вітаємо! Ваше замовлення доставляється безкоштовно!"</li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Set a free shipping threshold</strong> in Shopify Admin → Settings → Shipping (if not already set)</li>
+<li><strong>Add a free shipping bar</strong> — options:</li>
+<li><strong>Free Shipping Bar by Hextom</strong> (free) — most popular Shopify app for this</li>
+<li><strong>Dawn code solution</strong> — add a cart-drawer snippet that calculates distance to free shipping threshold</li>
+<li>Display the bar both in the cart page AND the cart drawer</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Free shipping bars increase average order value by 15-25%. Customers will add items to reach the threshold rather than abandoning.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / Revenue</p>
+<hr />
+<h2>6.2 Cart Cross-Sell / Upsell</h2>
+<h3>Current State</h3>
+<p>The cart page has no product recommendations. Once items are in the cart, there's no suggestion to add complementary products.</p>
+<h3>Best Practice (2026)</h3>
+<p>Cart should include:</p>
+<ol>
+<li><strong>"Доповніть ваше замовлення" (Complete your order)</strong> — complementary products</li>
+<li><strong>"Інші клієнти також купували" (Others also bought)</strong> — social proof upsell</li>
+<li><strong>Small add-ons at checkout</strong> — gift wrapping, care products, accessories</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Enable cart recommendations</strong> — in Dawn theme, add a "Product recommendations" section to the cart template</li>
+<li><strong>Install a cart upsell app:</strong></li>
+<li><strong>In Cart Upsell &amp; Cross-sell</strong> (free plan) — shows related products in cart</li>
+<li><strong>ReConvert</strong> — post-purchase upsell on thank you page</li>
+<li><strong>For handmade brand:</strong> offer gift wrapping as a cart add-on (e.g., "Подарункова упаковка — ₴200")</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Cart upsells increase AOV by 10-20%. Gift wrapping options are especially effective for fashion brands during holiday seasons.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Revenue</p>
+<hr />
+<h2>6.3 Trust Signals in Cart</h2>
+<h3>Current State</h3>
+<p>The cart shows Monobank installment banner (good) but no other trust signals. Key trust concerns at cart stage:</p>
+<ul>
+<li>Is payment secure?</li>
+<li>What if it doesn't fit? (return policy)</li>
+<li>When will it arrive?</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Below the checkout button, add:</p>
+<ol>
+<li><strong>Payment security badges</strong> — Visa, Mastercard, Apple Pay icons + "Безпечна оплата" (Secure payment)</li>
+<li><strong>Return policy reminder</strong> — "Безкоштовне повернення протягом 14 днів" (Free returns within 14 days)</li>
+<li><strong>Estimated delivery date</strong> — "Орієнтовна доставка: [date]"</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li>Add payment icons below the checkout button in the cart template</li>
+<li>Add a single-line return policy reminder</li>
+<li>If possible, calculate and show estimated delivery date based on shipping zone</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Trust signals at checkout reduce cart abandonment by 10-15%. The cart is where purchase anxiety peaks — addressing it directly here is critical.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> Conversion / Trust</p>
+<hr />
+<h2>6.4 Cart Drawer vs. Cart Page</h2>
+<h3>Current State</h3>
+<p>Dawn uses a cart drawer (slide-out panel) by default, with a full cart page also available. The cart drawer elements (heading, totals) are using H2 tags which affect the heading structure.</p>
+<h3>Best Practice (2026)</h3>
+<p>Cart drawer is preferred for fashion brands because:</p>
+<ul>
+<li>Keeps customer on the current page (doesn't interrupt browsing)</li>
+<li>Allows easy "continue shopping"</li>
+<li>Faster path back to browsing</li>
+</ul>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Keep the cart drawer</strong> as the primary cart interaction</li>
+<li><strong>Fix heading tags</strong> in the cart drawer — change H2 tags to non-heading elements (see Technical Setup section 1.5)</li>
+<li><strong>Add mini cross-sell</strong> to the cart drawer (1-2 recommended products)</li>
+<li><strong>Ensure cart drawer shows</strong> product image, name, selected size/color, price, quantity</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Optimized cart drawer reduces cart page bounce and keeps users in the shopping flow.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> UX / Conversion</p>
+<hr />
+<h2>6.5 Abandoned Cart Recovery</h2>
+<p><span class="priority priority-low">DONE</span> — Already configured via Klaviyo. No changes needed.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-07">
+<h2><span class="sec-num">07.</span> Navigation & Search</h2>
+<h2>Overview</h2>
+<p>Navigation is how customers find products. The current navigation is functional but basic — a simple text menu without visual aids, mega menu, or predictive search.</p>
+<hr />
+<h2>Current Navigation Structure</h2>
+<p><strong>Desktop Header:</strong></p>
+<ul>
+<li>Left: Головна (Home) | Новинки (New) | Каталог ▾ (Catalog dropdown)</li>
+<li>Center: SHEVCHENKO (logo)</li>
+<li>Right: Україна | UAH ₴ ▾ (country selector) | Search icon | Cart icon</li>
+</ul>
+<p><strong>Catalog Dropdown Contains:</strong></p>
+<ul>
+<li>SS 2026</li>
+<li>SHEVCHENKO x NEHA</li>
+<li>Комплекти (Sets)</li>
+<li>Сукні (Dresses)</li>
+<li>Низи (Bottoms)</li>
+<li>Верхи (Tops)</li>
+<li>Взуття (Shoes)</li>
+<li>Верхній одяг (Outerwear)</li>
+<li>Аксессуари (Accessories)</li>
+<li>Подарункові сертифікати (Gift certificates)</li>
+<li>SALE</li>
+</ul>
+<p><strong>Footer Links:</strong>
+| Left Column | Right Column |
+|-------------|--------------|
+| Доставка (Delivery) | Про нас (About) |
+| Обміни та повернення (Returns) | Контакти (Contact) |
+| Розмірна сітка (Size chart) | Політика конфіденційності (Privacy) |
+| Пошук (Search) | Міссія та цінності (Mission &amp; values) |
+| Blog | |</p>
+<hr />
+<h2>7.1 Mega Menu</h2>
+<h3>Current State</h3>
+<p>The "Каталог" dropdown is a simple text list — no images, no featured products, no visual hierarchy. All 11 categories are listed equally.</p>
+<h3>Best Practice (2026)</h3>
+<p>Fashion brands should use a mega menu that includes:</p>
+<ol>
+<li><strong>Category links</strong> organized in columns</li>
+<li><strong>Featured collection image</strong> — e.g., "Нова колекція SS 2026" with lifestyle photo</li>
+<li><strong>Visual category thumbnails</strong> — small images next to each category</li>
+<li><strong>Promotional item</strong> — "SALE" highlighted in red or with a badge</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Install a mega menu app:</strong></li>
+<li><strong>Meteor Mega Menu &amp; Navigation</strong> (free plan) — supports images, multiple columns, featured products</li>
+<li>
+<p><strong>Qikify Mega Menu</strong> — easy setup with Dawn theme</p>
+</li>
+<li>
+<p><strong>Structure the mega menu in 3 columns:</strong></p>
+</li>
+<li><strong>Column 1: Категорії</strong> — Сукні, Верхи, Низи, Верхній одяг, Взуття, Аксессуари</li>
+<li><strong>Column 2: Колекції</strong> — Новинки, SS 2026, SHEVCHENKO x NEHA, Комплекти</li>
+<li>
+<p><strong>Column 3: Featured image</strong> — seasonal lookbook photo with "Дивитись колекцію" CTA</p>
+</li>
+<li>
+<p><strong>Highlight SALE</strong> — use red color or a badge icon to draw attention</p>
+</li>
+</ol>
+<div class="example-box"><strong>Live Examples:</strong>
+<ul><li>Rouje — visual mega menu: <a href="https://rouje.com/en" target="_blank">rouje.com/en</a> (hover nav)</li>
+<li>Cult Gaia — category dropdown: <a href="https://cultgaia.com" target="_blank">cultgaia.com</a> (hover WOMEN)</li></ul></div>
+
+<h3>Expected Impact</h3>
+<p>Mega menus help customers find products faster, especially on desktop. They reduce navigational bounces by 15-20% and create stronger visual brand impression.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> UX / Conversion</p>
+<hr />
+<h2>7.2 Predictive Search</h2>
+<h3>Current State</h3>
+<p>The site has a search icon in the header. <strong>Shopify's Search &amp; Discovery app is installed</strong>, which provides enhanced search with product recommendations. It's unclear if predictive/instant search is fully enabled.</p>
+<h3>Best Practice (2026)</h3>
+<p>Modern fashion search should:</p>
+<ol>
+<li>Show <strong>instant results</strong> as the customer types</li>
+<li>Include <strong>product images</strong> in search suggestions</li>
+<li>Show <strong>popular searches</strong> when the search bar is empty</li>
+<li>Handle <strong>Ukrainian language</strong> typos and variations</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Enable Dawn's predictive search</strong> — Dawn 15.2.0 has built-in predictive search. Verify it's enabled:</li>
+<li>Theme editor → Header → Enable "Predictive search"</li>
+<li>
+<p>Check that product images appear in search results</p>
+</li>
+<li>
+<p><strong>Search &amp; Discovery app is already installed</strong> — configure it in Shopify Admin → Apps → Search &amp; Discovery:</p>
+</li>
+<li>Add synonyms for Ukrainian terms</li>
+<li>Set up product boosts (prioritize new arrivals, bestsellers)</li>
+<li>Configure search filters</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Users who search are 3-5x more likely to convert than browsers. Predictive search reduces search friction and shows products faster.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> Conversion</p>
+<hr />
+<h2>7.3 Footer Optimization</h2>
+<h3>Current State</h3>
+<p>The footer contains:</p>
+<ul>
+<li>Two columns of links (navigation + policies)</li>
+<li>Instagram icon (only social link)</li>
+<li>Country/region selector</li>
+<li>Language selector</li>
+<li>Copyright + Shopify policy links (Privacy policy, Contact information, Refund policy — in English)</li>
+</ul>
+<h3>Issues</h3>
+<ol>
+<li><strong>Duplicate policy links</strong> — both Ukrainian versions and English Shopify defaults exist</li>
+<li><strong>"Blog" is in English</strong> — should be "Блог"</li>
+<li><strong>No contact info</strong> (phone, email, address) visible in footer</li>
+<li><strong>Only Instagram</strong> as social media — no other platforms</li>
+<li><strong>No payment method icons</strong> in footer</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Remove English policy links</strong> (Privacy policy, Contact information, Refund policy) — keep only the Ukrainian equivalents</li>
+<li><strong>Rename "Blog" to "Блог"</strong></li>
+<li><strong>Add contact information:</strong></li>
+<li>Email address</li>
+<li>Phone number (with click-to-call on mobile)</li>
+<li>Working hours</li>
+<li><strong>Add payment method icons</strong> — Visa, Mastercard, Monobank</li>
+<li><strong>Expand social links</strong> if the brand has presence on TikTok, Facebook, Pinterest, etc.</li>
+<li><strong>Add a "Популярні колекції" (Popular Collections)</strong> link section in the footer for SEO internal linking</li>
+</ol>
+<h3>Expected Impact</h3>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> Trust / SEO / Conversion</p>
+<hr />
+<h2>7.4 Mobile Navigation</h2>
+<h3>Current State</h3>
+<p>On mobile, the navigation collapses into a hamburger menu. The SHEVCHENKO logo is centered, with the hamburger menu on the left and search/cart on the right.</p>
+<h3>Best Practice (2026)</h3>
+<p>Mobile navigation for fashion should include:</p>
+<ol>
+<li><strong>Hamburger menu</strong> with clear category hierarchy ✓</li>
+<li><strong>Sticky header</strong> that stays visible on scroll ✓ (Dawn default)</li>
+<li><strong>Bottom navigation bar</strong> — optional but increasingly common (Home, Search, Categories, Cart)</li>
+<li><strong>Visual category listing</strong> — images next to category names in mobile menu</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Verify sticky header is enabled</strong> — in Dawn theme settings</li>
+<li><strong>Consider adding a bottom navigation bar</strong> for the most-used actions (Home, Search, Cart). This is a custom code addition but significantly improves mobile UX.</li>
+<li><strong>Ensure tap targets are at least 44x44px</strong> throughout mobile navigation</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Sticky navigation + bottom bar makes key actions always accessible without scrolling, improving mobile conversion.</p>
+<p><span class="priority priority-low">Low</span>
+<strong>Impact Area:</strong> UX</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-08">
+<h2><span class="sec-num">08.</span> Design & UX</h2>
+<h2>Overview</h2>
+<p>SHEVCHENKO is a premium handmade fashion brand, but the current site design doesn't fully communicate that premium positioning. The default Dawn theme provides a clean canvas but lacks the visual sophistication expected at the ₴7,000-10,000+ price point.</p>
+<hr />
+<h2>8.1 Visual Identity &amp; Brand Consistency</h2>
+<h3>Current State</h3>
+<ul>
+<li><strong>Logo:</strong> Clean, minimalist "SHEVCHENKO" wordmark with a circular emblem — sophisticated and appropriate</li>
+<li><strong>Color palette:</strong> Primarily white/neutral — very clean but potentially sterile</li>
+<li><strong>Typography:</strong> Dawn default fonts — functional but not distinctive</li>
+<li><strong>Photography style:</strong> Warm, lifestyle-focused, urban settings — good and consistent</li>
+<li><strong>Overall aesthetic:</strong> Minimalist to the point of feeling incomplete rather than intentionally curated</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Premium fashion brands use design to communicate quality:</p>
+<ol>
+<li><strong>Typography</strong> — distinctive serif or custom fonts that feel luxurious (e.g., Playfair Display, Cormorant Garamond, or a custom typeface)</li>
+<li><strong>Whitespace</strong> — intentional, not accidental. Current whitespace feels like missing content, not elegant spacing.</li>
+<li><strong>Micro-interactions</strong> — subtle animations on hover, page transitions, image zoom</li>
+<li><strong>Consistent visual language</strong> — every element should feel curated</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Upgrade typography</strong> — In Dawn theme settings → Typography:</li>
+<li><strong>Headings:</strong> Switch to a serif font like "Cormorant Garamond" or "Playfair Display" for a premium feel</li>
+<li><strong>Body:</strong> Keep a clean sans-serif (Inter, DM Sans, or Dawn's default)</li>
+<li>
+<p>This single change dramatically shifts perceived brand quality</p>
+</li>
+<li>
+<p><strong>Add subtle animations:</strong></p>
+</li>
+<li>Fade-in on scroll for product cards (Dawn supports basic animations in theme settings)</li>
+<li>
+<p>Image zoom on hover for product grid</p>
+</li>
+<li>
+<p><strong>Refine color palette:</strong></p>
+</li>
+<li>Add a warm accent color for CTAs and highlights (complementing the beige/neutral photography)</li>
+<li>Use a deep, rich color for text headers (e.g., charcoal #2C2C2C instead of pure black)</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Typography and visual refinement directly impact perceived value. Customers are more willing to pay premium prices when the site itself feels premium. This can increase conversion by 10-20% for high-price-point items.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> UX / Trust / Conversion</p>
+<hr />
+<h2>8.2 Mobile Experience</h2>
+<h3>Current State</h3>
+<p>Mobile accounts for approximately 80-85% of traffic for Ukrainian fashion brands. The mobile experience is currently:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Responsive layout</td>
+<td>Good</td>
+<td>Dawn handles this well</td>
+</tr>
+<tr>
+<td>Tap targets</td>
+<td>Adequate</td>
+<td>Most buttons are tappable</td>
+</tr>
+<tr>
+<td>Sticky header</td>
+<td>Yes</td>
+<td>Logo + hamburger + search + cart</td>
+</tr>
+<tr>
+<td>Sticky add-to-cart</td>
+<td>Detected</td>
+<td>Shows on scroll on product pages</td>
+</tr>
+<tr>
+<td>Font readability</td>
+<td>Good</td>
+<td>Adequate size</td>
+</tr>
+<tr>
+<td>Image loading</td>
+<td>Good</td>
+<td>Lazy loading enabled</td>
+</tr>
+<tr>
+<td>Product grid</td>
+<td>2-column</td>
+<td>Standard</td>
+</tr>
+<tr>
+<td>Swipe gestures</td>
+<td>Unknown</td>
+<td>Standard browser behavior</td>
+</tr>
+</tbody>
+</table>
+<h3>Issues</h3>
+<ol>
+<li><strong>No sticky "Add to Cart"</strong> visible at bottom of screen on mobile product pages — customer must scroll back up to add to cart</li>
+<li><strong>Hero text</strong> may have contrast issues on mobile</li>
+<li><strong>No bottom navigation bar</strong> for quick access to Home/Search/Cart</li>
+<li><strong>Country selector</strong> in header takes up space — could be moved to footer only</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Add sticky "Add to Cart" bar on mobile</strong> — shows product name, price, and "Add to Cart" button fixed at the bottom of the screen when the original button scrolls out of view. This is the #1 mobile CRO improvement for fashion.</li>
+<li>Dawn may have this built in (check theme settings → Product page)</li>
+<li>
+<p>If not, apps like "Sticky Add to Cart" by Starter or custom code</p>
+</li>
+<li>
+<p><strong>Remove country selector from mobile header</strong> — move to footer. Free up header space for logo and cart.</p>
+</li>
+<li>
+<p><strong>Ensure all interactive elements are minimum 44x44px</strong> — especially close buttons, size selectors, quantity buttons</p>
+</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Sticky add-to-cart on mobile typically increases mobile conversion by 8-15%. This is arguably the highest-ROI single change for mobile.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> Conversion (Mobile)</p>
+<hr />
+<h2>8.3 Page Layout &amp; Content Hierarchy</h2>
+<h3>Current State</h3>
+<p>The homepage and collection pages suffer from poor content hierarchy:</p>
+<ul>
+<li><strong>Homepage:</strong> Hero → Products → Empty space → Footer (no storytelling arc)</li>
+<li><strong>Collection pages:</strong> Title → Grid → Footer (no context or filters)</li>
+<li><strong>Product pages:</strong> Images + Info → Description → Footer (limited supporting content)</li>
+</ul>
+<h3>Best Practice (2026)</h3>
+<p>Each page should follow a clear visual hierarchy using the F-pattern or Z-pattern reading behavior:</p>
+<ol>
+<li><strong>Primary message</strong> (above the fold) — what the page is about</li>
+<li><strong>Supporting content</strong> — details, features, trust signals</li>
+<li><strong>Social proof</strong> — reviews, testimonials</li>
+<li><strong>Call to action</strong> — clear next step</li>
+<li><strong>Secondary content</strong> — related products, blog, newsletter</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Build out homepage sections</strong> as described in Section 03 (Homepage)</li>
+<li><strong>Add collection descriptions and banners</strong> above product grids</li>
+<li><strong>Add "Complete the Look" and review sections</strong> to product pages</li>
+<li><strong>Ensure every page has a clear CTA</strong> — what should the visitor do next?</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Clear content hierarchy reduces cognitive load and guides users toward purchase. Well-structured pages increase time-on-site and reduce bounce rate.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> UX / Conversion</p>
+<hr />
+
+<h2>8.4 Contact Page</h2>
+<h3>Current State</h3>
+<p>The contact page shows:</p>
+<ul>
+<li>Simple contact form (Name, Email, Phone, Message)</li>
+<li>"Надіслати" (Send) button</li>
+<li>Below the form: SHEVCHENKO logo with note about response times (6:00-22:00)</li>
+<li>Instagram link "SHEVCHENKO FASHION"</li>
+</ul>
+<h3>Issues</h3>
+<ol>
+<li><strong>No physical address</strong> — even if the brand is online-only, a city location builds trust</li>
+<li><strong>No direct email address</strong> visible — customers might prefer email to a form</li>
+<li><strong>No phone number</strong> — for high-value purchases, some customers want to call/message</li>
+<li><strong>No chat widget</strong> — modern expectation for instant support</li>
+<li><strong>No FAQ section</strong> — most questions can be answered without contacting support</li>
+</ol>
+<h3>Action Steps</h3>
+<ol>
+<li><strong>Add visible contact details:</strong> email, phone/Telegram/Viber, city (Kyiv or wherever the brand is based)</li>
+<li><strong>Add a FAQ section</strong> above the contact form addressing:</li>
+<li>Як обрати розмір? (How to choose size?)</li>
+<li>Який термін доставки? (Delivery time?)</li>
+<li>Як повернути товар? (How to return?)</li>
+<li>Чи можна замовити індивідуальний розмір? (Custom size?)</li>
+<li><strong>Consider adding a chat widget</strong> — Tidio (free plan) or Shopify Inbox for real-time customer support</li>
+<li><strong>Add a map or city reference</strong> — "SHEVCHENKO, Київ, Україна"</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Accessible contact information and FAQ reduce support burden while building trust. A visible phone number alone can increase conversion by 3-5% for high-value purchases.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> Trust / Conversion</p>
+</div>
+
+
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-09">
+<h2><span class="sec-num">10.</span> Analytics & Tracking</h2>
+<h2>Overview</h2>
+<p>Data-driven decisions require proper tracking. Currently, SHEVCHENKO has GA4 and Facebook Pixel installed but is missing critical tools for understanding user behavior and optimizing conversion.</p>
+<hr />
+<h2>Current Analytics Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Status</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Facebook &amp; Instagram Pixel</td>
+<td>Connected &amp; Optimized</td>
+<td>Ad tracking, retargeting</td>
+</tr>
+<tr>
+<td>Google &amp; YouTube Pixel</td>
+<td>Connected &amp; Optimized</td>
+<td>Google Ads, YouTube tracking</td>
+</tr>
+<tr>
+<td>Microsoft Clarity</td>
+<td>Not installed</td>
+<td>Session recordings, heatmaps (free)</td>
+</tr>
+<tr>
+<td>Google Search Console</td>
+<td>Unknown</td>
+<td>Search performance, indexing</td>
+</tr>
+<tr>
+<td>Shopify Analytics</td>
+<td>Available</td>
+<td>Built-in store analytics</td>
+</tr>
+</tbody>
+</table>
+<hr />
+
+<h2>9.1 Microsoft Clarity — Install (Free)</h2>
+<h3>Why Clarity</h3>
+<p>Clarity is <strong>completely free</strong> (by Microsoft) and provides:</p>
+<ul>
+<li>Session recordings — watch real users browse your site</li>
+<li>Heatmaps — see where users click, scroll, and hover</li>
+<li>Rage click detection — identify frustrating UX elements</li>
+<li>Dead click detection — find elements users expect to be clickable but aren't</li>
+<li>Dashboard with user behavior insights</li>
+</ul>
+<h3>Installation Steps</h3>
+<ol>
+<li>Go to Shopify App Store → search "Microsoft Clarity"</li>
+<li>Install the app</li>
+<li>The app automatically adds the Clarity tracking code</li>
+<li>Create a Clarity account at clarity.microsoft.com if you don't have one</li>
+<li>Connect your Shopify store</li>
+</ol>
+<h3>What to Look For (First Week)</h3>
+<p>After 1 week of data collection, review:</p>
+<ol>
+<li><strong>Session recordings</strong> — watch 20-30 sessions, noting where users:</li>
+<li>Get confused or frustrated</li>
+<li>Leave the site</li>
+<li>Try to click non-clickable elements</li>
+<li><strong>Heatmaps</strong> — check:</li>
+<li>Homepage: where do users click? How far do they scroll?</li>
+<li>Product page: do they read the description? Do they look for size guide?</li>
+<li>Collection page: do they try to filter?</li>
+<li><strong>Rage clicks</strong> — highest priority UX fixes</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Session recordings typically reveal 3-5 quick-win UX improvements within the first week. This is the single best tool for understanding actual user behavior.</p>
+<p><span class="priority priority-critical">Critical</span>
+<strong>Impact Area:</strong> Conversion (enables UX optimization)</p>
+<hr />
+<h2>9.2 Google Search Console — Set Up</h2>
+<h3>Installation Steps</h3>
+<ol>
+<li>Go to search.google.com/search-console</li>
+<li>Click "Add property"</li>
+<li>Choose "URL prefix" method</li>
+<li>Enter: <code>https://shevchenko.fashion</code></li>
+<li>Verify ownership via:</li>
+<li><strong>HTML tag method</strong> (easiest for Shopify): Copy the meta tag → Shopify Admin → Online Store → Themes → Edit Code → theme.liquid → paste in <code>&lt;head&gt;</code></li>
+<li>Or use DNS verification if you have domain access</li>
+</ol>
+<h3>After Verification</h3>
+<ol>
+<li><strong>Submit sitemap:</strong> Sitemaps → Add → <code>sitemap.xml</code></li>
+<li><strong>Check Index Coverage:</strong> see how many pages Google has indexed</li>
+<li><strong>Check for errors:</strong> crawl errors, 404 pages, mobile usability issues</li>
+<li><strong>Monitor search queries:</strong> what terms bring people to your site</li>
+</ol>
+<h3>Key Metrics to Monitor</h3>
+<ul>
+<li><strong>Total impressions</strong> — how often your pages appear in Google</li>
+<li><strong>Average CTR</strong> — click-through rate from search results</li>
+<li><strong>Average position</strong> — where you rank for key terms</li>
+<li><strong>Top queries</strong> — which search terms drive traffic</li>
+</ul>
+<h3>Expected Impact</h3>
+<p>GSC is essential for understanding and improving organic search performance. It reveals indexing issues that may be silently hurting your visibility.</p>
+<p><span class="priority priority-high">High</span>
+<strong>Impact Area:</strong> SEO</p>
+<hr />
+<h2>9.3 Recommended Tracking Dashboard</h2>
+<h3>Monthly KPIs to Track</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Source</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Monthly sessions</td>
+<td>GA4</td>
+<td>Track growth</td>
+</tr>
+<tr>
+<td>Conversion rate</td>
+<td>GA4 / Shopify</td>
+<td>&gt;2% (Ukrainian fashion avg)</td>
+</tr>
+<tr>
+<td>Average order value</td>
+<td>Shopify</td>
+<td>Track and increase</td>
+</tr>
+<tr>
+<td>Cart abandonment rate</td>
+<td>Shopify</td>
+<td>&lt;70%</td>
+</tr>
+<tr>
+<td>Bounce rate</td>
+<td>GA4</td>
+<td>&lt;45%</td>
+</tr>
+<tr>
+<td>Pages per session</td>
+<td>GA4</td>
+<td>&gt;3</td>
+</tr>
+<tr>
+<td>Mobile vs Desktop conversion</td>
+<td>GA4</td>
+<td>Track separately</td>
+</tr>
+<tr>
+<td>Email subscriber growth</td>
+<td>Klaviyo</td>
+<td>30-50/month</td>
+</tr>
+<tr>
+<td>Email revenue share</td>
+<td>Klaviyo</td>
+<td>&gt;20% of total</td>
+</tr>
+<tr>
+<td>Organic search traffic</td>
+<td>GSC</td>
+<td>Track growth</td>
+</tr>
+<tr>
+<td>Top search queries</td>
+<td>GSC</td>
+<td>Monitor rankings</td>
+</tr>
+</tbody>
+</table>
+<h3>Action Steps</h3>
+<ol>
+<li>Set up a monthly reporting routine (first Monday of each month)</li>
+<li>Review Shopify Analytics dashboard (built-in)</li>
+<li>Review GA4 conversion funnel</li>
+<li>Review Clarity session recordings (5-10 per week)</li>
+<li>Review GSC search performance</li>
+</ol>
+<h3>Expected Impact</h3>
+<p>Regular data review enables continuous optimization. Brands that review analytics monthly see 2-3x faster growth than those that don't.</p>
+<p><span class="priority priority-medium">Medium</span>
+<strong>Impact Area:</strong> All</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-10">
+<h2><span class="sec-num">11.</span> Competitor Analysis</h2>
+<h2>Overview</h2>
+<p>We benchmarked SHEVCHENKO against 5 Shopify-based fashion brands at similar or higher price points. All competitors were verified as running on Shopify, making their implementations directly replicable.</p>
+<hr />
+<h2>Competitor Profiles</h2>
+<hr />
+<h3>2. The Frankie Shop (thefrankieshop.com)</h3>
+<p><strong>Origin:</strong> New York | <strong>Price:</strong> $150-400 | <strong>Platform:</strong> Shopify</p>
+<p><img class="screenshot" alt="The Frankie Shop Homepage" src="screenshots/competitors/frankie-shop-home-desktop.png" /></p>
+<p><strong>Why relevant:</strong> A Shopify success story in contemporary/premium women's fashion. Ultra-minimalist aesthetic similar to SHEVCHENKO's neutral palette.</p>
+<p><strong>What they do well:</strong></p>
+<ul>
+<li>Ultra-editorial full-bleed hero image</li>
+<li>Extremely minimal, confident navigation (SHOP, EXPLORE, SEARCH)</li>
+<li>"EXPLORE" section for editorial content beyond just shopping</li>
+<li>Clean product pages with well-organized details</li>
+<li>Back-in-stock notification UX</li>
+<li>Fast page loading</li>
+</ul>
+<p><strong>What SHEVCHENKO can learn:</strong></p>
+<ul>
+<li>Minimalism done right — The Frankie Shop's minimalism is intentional and confidence-projecting, whereas SHEVCHENKO's feels more like missing content</li>
+<li>"EXPLORE" editorial section adds brand depth</li>
+<li>The confidence of having just 3 main nav items signals premium positioning</li>
+</ul>
+<hr />
+<h3>3. Rouje (rouje.com)</h3>
+<p><strong>Origin:</strong> Paris, France | <strong>Price:</strong> EUR 100-250 | <strong>Platform:</strong> Shopify</p>
+<p><img class="screenshot" alt="Rouje Homepage" src="screenshots/competitors/rouje-home-desktop.png" /></p>
+<p><strong>Why relevant:</strong> Premium European fashion brand on Shopify that grew from a personal brand into a global e-commerce business. Similar trajectory opportunity for SHEVCHENKO.</p>
+<p><strong>What they do well:</strong></p>
+<ul>
+<li>Beautiful editorial hero with campaign naming ("La Niña — Nouvelle Collection")</li>
+<li>Distinctive script typography for collection names — immediately recognizable brand</li>
+<li>Klarna "pay in installments" banner at top (similar to SHEVCHENKO's Monobank, but more prominently placed)</li>
+<li>Rich mega menu with many sub-categories</li>
+<li>Shop-the-look functionality</li>
+<li>Reviews integrated into product pages</li>
+<li>Clear shipping/returns info visible early</li>
+</ul>
+<p><strong>What SHEVCHENKO can learn:</strong></p>
+<ul>
+<li>Campaign naming creates storytelling and exclusivity</li>
+<li>The announcement bar with payment options info is prime real estate — SHEVCHENKO should add one</li>
+<li>Rich typography (script + serif + sans-serif) creates visual hierarchy and brand recognition</li>
+</ul>
+<hr />
+<h3>4. Nanushka (nanushka.com)</h3>
+<p><strong>Origin:</strong> Budapest, Hungary | <strong>Price:</strong> $200-600 | <strong>Platform:</strong> Shopify</p>
+<p><img class="screenshot" alt="Nanushka Homepage" src="screenshots/competitors/nanushka-home-desktop.png" /></p>
+<p><strong>Why relevant:</strong> Eastern European premium brand that successfully scaled internationally. Uses Shopify. Similar brand DNA — artisanal quality, limited production.</p>
+<p><strong>What they do well:</strong></p>
+<ul>
+<li>Full-bleed campaign photography (editorial/runway)</li>
+<li>Announcement bar: "Five bags that define Nanushka" — editorial content marketing</li>
+<li>Elegant serif typography (Nanushka wordmark)</li>
+<li>Clean category navigation (New In, Women, Men, Homeware, Our Cosmos)</li>
+<li>Currency/region selector</li>
+<li>"Our Cosmos" — brand universe section (storytelling beyond products)</li>
+</ul>
+<p><strong>What SHEVCHENKO can learn:</strong></p>
+<ul>
+<li>"Our Cosmos" concept — a section dedicated to brand philosophy, sustainability, process</li>
+<li>Announcement bar for editorial content drives clicks and engagement</li>
+<li>Serif typography elevates perceived luxury</li>
+</ul>
+<hr />
+<h3>5. Cult Gaia (cultgaia.com)</h3>
+<p><strong>Origin:</strong> Los Angeles | <strong>Price:</strong> $200-600 | <strong>Platform:</strong> Shopify</p>
+<p><img class="screenshot" alt="Cult Gaia Homepage" src="screenshots/competitors/cult-gaia-home-desktop.png" /></p>
+<p><strong>What they do well:</strong></p>
+<ul>
+<li>Dark, luxury aesthetic with distinctive script logo</li>
+<li>Detailed mega menu (New, Women, Men, Kids, Bags, Shoes, Accessories, Home, Beauty)</li>
+<li>Full editorial hero imagery</li>
+<li>Cookie consent + payment information bars</li>
+</ul>
+<p><strong>What SHEVCHENKO can learn:</strong></p>
+<ul>
+<li>Breadth of categories shows brand ecosystem potential</li>
+<li>The dark/luxury color scheme is an alternative to SHEVCHENKO's white minimalism</li>
+</ul>
+<hr />
+<h2>Competitive Gap Analysis</h2>
+<h3>What ALL 5 Competitors Have That SHEVCHENKO Doesn't</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Sleeper</th>
+<th>Frankie</th>
+<th>Rouje</th>
+<th>Nanushka</th>
+<th>Cult Gaia</th>
+<th>Shevchenko</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Announcement bar</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Disabled (exists, enable it!)</td>
+</tr>
+<tr>
+<td>Campaign/editorial hero</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>Partial</td>
+</tr>
+<tr>
+<td>Rich typography</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Multiple homepage sections</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Collection page filters</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Size guide on product page</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Product reviews</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓ (Klaviyo Reviews)</td>
+</tr>
+<tr>
+<td>Trust badges/shipping info</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Brand story section</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Payment options banner</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>Partial</td>
+</tr>
+<tr>
+<td>Wishlist</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Breadcrumbs</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+</tbody>
+</table>
+<h3>Key Takeaway</h3>
+<p>SHEVCHENKO is missing <strong>every single standard feature</strong> that its competitors have. This isn't about luxury additions — these are baseline expectations for a fashion brand at the ₴7,000+ price point in 2026.</p>
+<hr />
+<h2>Priority Actions Based on Competitor Analysis</h2>
+<h3>Must-Have (all 5 competitors have these)</h3>
+<ol>
+<li><strong>Collection page filters</strong> (size, color, price)</li>
+<li>~~Product reviews~~ — <span class="priority priority-low">DONE</span> (Klaviyo Reviews). Ensure prominent display + photo reviews.</li>
+<li>~~Size guide link~~ — <span class="priority priority-low">DONE</span>. Enhance with model measurements + size recommender.</li>
+<li><strong>Trust badges</strong> (shipping, returns, quality)</li>
+<li>~~Announcement bar~~ — <strong>Exists but disabled</strong>. Just enable it in theme editor.</li>
+</ol>
+<h3>Should-Have (4+ competitors have these)</h3>
+<ol>
+<li><strong>Brand story section</strong> on homepage</li>
+<li><strong>Wishlist feature</strong></li>
+<li><strong>Rich typography</strong> (serif or custom font for headings)</li>
+<li><strong>Editorial/campaign naming</strong> for collections</li>
+</ol>
+<h3>Nice-to-Have (differentiators)</h3>
+<ol>
+<li><strong>"Shop the Look"</strong> functionality (Rouje)</li>
+<li><strong>Brand universe page</strong> (Nanushka's "Our Cosmos")</li>
+<li><strong>Secondary category nav bar</strong> (Sleeper)</li>
+<li><strong>Video content</strong> on product pages</li>
+</ol>
+</div>
+
+<!-- ============================================================ -->
+<div class="section-block" id="section-11">
+<h2><span class="sec-num">10.</span> Competitor References</h2>
+<p>Quick-reference guide: for each design change recommended in the audit, here's a specific competitor URL to see the best-practice example live.</p>
+<hr />
+<h2>Homepage</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hero with headline + CTA + campaign name</td>
+<td>Rouje — "La Niña" campaign hero</td>
+<td>https://rouje.com/en</td>
+</tr>
+<tr>
+<td>Hero with editorial full-bleed imagery</td>
+<td>The Frankie Shop — bold editorial hero</td>
+<td>https://thefrankieshop.com</td>
+</tr>
+<tr>
+<td>Announcement bar (free shipping, promos)</td>
+<td>Rouje — "Free delivery from €99" bar</td>
+<td>https://rouje.com/en</td>
+</tr>
+<tr>
+<td>Announcement bar (editorial content)</td>
+<td>Nanushka — "Five bags that define Nanushka"</td>
+<td>https://nanushka.com</td>
+</tr>
+<tr>
+<td>Trust badges / value proposition section</td>
+<td>Rouje — shipping, returns, quality below hero</td>
+<td>https://rouje.com/en (scroll below hero)</td>
+</tr>
+<tr>
+<td>Brand story section on homepage</td>
+<td>Nanushka — "Our Cosmos" section</td>
+<td>https://nanushka.com/pages/our-cosmos</td>
+</tr>
+<tr>
+<td>Newsletter in footer</td>
+<td>Nanushka — "The Nanushka Circle" footer signup</td>
+<td>https://nanushka.com (footer)</td>
+</tr>
+<tr>
+<td>Instagram feed integration</td>
+<td>Cult Gaia — social feed section</td>
+<td>https://cultgaia.com (scroll to bottom)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Collection Pages</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Filters (size, color, price)</td>
+<td>Nanushka — sidebar filters on collection</td>
+<td>https://nanushka.com/collections/women-dresses</td>
+</tr>
+<tr>
+<td>Filters (size, color, price)</td>
+<td>The Frankie Shop — filter/sort bar</td>
+<td>https://thefrankieshop.com/collections/dresses</td>
+</tr>
+<tr>
+<td>Collection banner + description</td>
+<td>Rouje — collection image headers</td>
+<td>https://rouje.com/en/collections/robes</td>
+</tr>
+<tr>
+<td>Product card with color swatches</td>
+<td>Nanushka — color dots under product cards</td>
+<td>https://nanushka.com/collections/women-new-in</td>
+</tr>
+<tr>
+<td>Product card hover image swap</td>
+<td>The Frankie Shop — second image on hover</td>
+<td>https://thefrankieshop.com/collections/new-arrivals</td>
+</tr>
+<tr>
+<td>Product badges (New, Sale)</td>
+<td>Cult Gaia — "New" badges on cards</td>
+<td>https://cultgaia.com/collections/new</td>
+</tr>
+<tr>
+<td>Quick add from collection</td>
+<td>The Frankie Shop — quick add button</td>
+<td>https://thefrankieshop.com/collections/all</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Product Pages</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Color swatches on product page</strong></td>
+<td>Nanushka — color swatch circles</td>
+<td>https://nanushka.com/collections/women-dresses (click any multi-color product)</td>
+</tr>
+<tr>
+<td><strong>Color swatches on product page</strong></td>
+<td>Rouje — clickable color options</td>
+<td>https://rouje.com/en/collections/robes (click any dress)</td>
+</tr>
+<tr>
+<td><strong>Color swatches on product page</strong></td>
+<td>The Frankie Shop — color variants</td>
+<td>https://thefrankieshop.com/collections/dresses (click any multi-color item)</td>
+</tr>
+<tr>
+<td>Size guide link near selector</td>
+<td>The Frankie Shop — "Size guide" link</td>
+<td>https://thefrankieshop.com/products/malo-t-shirt-dress-black</td>
+</tr>
+<tr>
+<td>Size guide with model measurements</td>
+<td>Rouje — "Model wears size..." text</td>
+<td>https://rouje.com/en/collections/robes (click any dress)</td>
+</tr>
+<tr>
+<td>Product details in accordions</td>
+<td>The Frankie Shop — DETAILS &amp; FIT, SHIPPING sections</td>
+<td>https://thefrankieshop.com/products/malo-t-shirt-dress-black</td>
+</tr>
+<tr>
+<td>Breadcrumbs on product page</td>
+<td>The Frankie Shop — WOMEN / DRESSES / MID &amp; LONG</td>
+<td>https://thefrankieshop.com/products/malo-t-shirt-dress-black</td>
+</tr>
+<tr>
+<td>Breadcrumbs on product page</td>
+<td>Rouje — HOME / JUST ARRIVED / ...</td>
+<td>https://rouje.com/en/collections/robes (click any product)</td>
+</tr>
+<tr>
+<td>Trust badges (shipping, returns)</td>
+<td>Rouje — shipping info below Add to Cart</td>
+<td>https://rouje.com/en/collections/robes (click any product)</td>
+</tr>
+<tr>
+<td>"Complete the Look" cross-sell</td>
+<td>Nanushka — "Style with" section</td>
+<td>https://nanushka.com/collections/women-dresses (click any product, scroll down)</td>
+</tr>
+<tr>
+<td>"Complete the Look" cross-sell</td>
+<td>Rouje — "Wear it with" section</td>
+<td>https://rouje.com/en/collections/robes (click any product)</td>
+</tr>
+<tr>
+<td>Product reviews display</td>
+<td>Rouje — star rating + reviews on product page</td>
+<td>https://rouje.com/en/collections/robes (click product with reviews)</td>
+</tr>
+<tr>
+<td>Wishlist button</td>
+<td>Nanushka — heart icon on product page</td>
+<td>https://nanushka.com/collections/women-new-in (click any product)</td>
+</tr>
+<tr>
+<td>Product video</td>
+<td>Nanushka — video in product gallery</td>
+<td>https://nanushka.com/collections/women-dresses (check product galleries)</td>
+</tr>
+<tr>
+<td>"In-store availability"</td>
+<td>Rouje — "In-store availability" link</td>
+<td>https://rouje.com/en/collections/robes (click any product)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Navigation &amp; Footer</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mega menu with images</td>
+<td>Rouje — visual mega menu</td>
+<td>https://rouje.com/en (hover over nav items)</td>
+</tr>
+<tr>
+<td>Mega menu with images</td>
+<td>Cult Gaia — detailed dropdown categories</td>
+<td>https://cultgaia.com (hover over WOMEN)</td>
+</tr>
+<tr>
+<td>Minimal confident navigation</td>
+<td>The Frankie Shop — SHOP / EXPLORE / SEARCH only</td>
+<td>https://thefrankieshop.com</td>
+</tr>
+<tr>
+<td>Comprehensive footer</td>
+<td>Nanushka — multi-column footer with newsletter, About, Support, Legal, Social</td>
+<td>https://nanushka.com (scroll to footer)</td>
+</tr>
+<tr>
+<td>Payment method icons in footer</td>
+<td>Cult Gaia — payment icons</td>
+<td>https://cultgaia.com (footer)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Design &amp; Typography</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serif typography for headings</td>
+<td>Nanushka — elegant serif wordmark + headings</td>
+<td>https://nanushka.com</td>
+</tr>
+<tr>
+<td>Script/custom font for campaigns</td>
+<td>Rouje — "La Niña" script collection naming</td>
+<td>https://rouje.com/en</td>
+</tr>
+<tr>
+<td>Dark luxury aesthetic</td>
+<td>Cult Gaia — dark color scheme</td>
+<td>https://cultgaia.com</td>
+</tr>
+<tr>
+<td>Ultra-clean minimalism done right</td>
+<td>The Frankie Shop — intentional whitespace</td>
+<td>https://thefrankieshop.com</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Email &amp; Retention</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10% off first order popup</td>
+<td>Cult Gaia — "10% OFF YOUR ORDER" popup</td>
+<td>https://cultgaia.com (visit in incognito)</td>
+</tr>
+<tr>
+<td>Named loyalty program</td>
+<td>Nanushka — "The Nanushka Circle"</td>
+<td>https://nanushka.com (footer)</td>
+</tr>
+<tr>
+<td>"Early access" for subscribers</td>
+<td>Nanushka — "early access to collections" in signup</td>
+<td>https://nanushka.com (footer signup)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Brand Storytelling</h2>
+<table>
+<thead>
+<tr>
+<th>Recommendation</th>
+<th>Competitor Example</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Brand universe / philosophy page</td>
+<td>Nanushka — "Our Cosmos"</td>
+<td>https://nanushka.com/pages/our-cosmos</td>
+</tr>
+<tr>
+<td>Founder story</td>
+<td>Rouje — "The Brand" section</td>
+<td>https://rouje.com/en/pages/the-brand</td>
+</tr>
+<tr>
+<td>Sustainability/materials story</td>
+<td>Nanushka — materials &amp; responsibility</td>
+<td>https://nanushka.com/pages/our-cosmos</td>
+</tr>
+</tbody>
+</table>
+<hr />
+
+</div>
+
+</div>
+</body>
+</html>
